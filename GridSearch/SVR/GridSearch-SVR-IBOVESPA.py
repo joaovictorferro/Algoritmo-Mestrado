@@ -15,25 +15,11 @@ import warnings
 warnings.filterwarnings("ignore")
 
 """# Leitura Database"""
-
-data_All=pd.DataFrame()
-x_batches_Full=[]
-y_batches_Full=[]
-X_Test_Full=[]
-Y_Test_Full=[]
-
-range_list = [1]
 data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/IBOVESPA/DataSet_IBOVESPA.csv')
-
-data.shape
-
-data.columns
 
 """# Preprocessamento"""
 
 def preprocessing(df_):
-    cols=df_.columns
-
     Train=df_.iloc[0:1700,:] # Cria o dataset de Treino com 1700
     Test=df_.iloc[1700:,:] #Cria o dataset de teste 738
     Train=Train.fillna(Train.mean()) # Completa o dataset onde estiver vazio com a média do dataset de Treino

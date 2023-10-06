@@ -8,7 +8,6 @@ import numpy as np
 
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error, mean_absolute_error
-from sklearn.ensemble import BaggingRegressor
 
 from sklearn.preprocessing import StandardScaler
 
