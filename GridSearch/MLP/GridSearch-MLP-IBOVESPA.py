@@ -33,8 +33,6 @@ data.columns
 """# Preprocessamento"""
 
 def preprocessing(df_):
-    cols=df_.columns
-
     Train=df_.iloc[0:1700,:] # Cria o dataset de Treino com 1700
     Test=df_.iloc[1700:,:] #Cria o dataset de teste 738
     Train=Train.fillna(Train.mean()) # Completa o dataset onde estiver vazio com a média do dataset de Treino
@@ -69,7 +67,6 @@ Train,Test=preprocessing(data) # Realiza o pré-processamento
 """# GridSearch"""
 
 from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
-from sklearn.metrics import mean_squared_error
 
 X_Train = np.array([x for x in range(len(Train))])
 Train = Train.ravel()
