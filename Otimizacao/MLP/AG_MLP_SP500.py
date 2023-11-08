@@ -23,7 +23,7 @@ MUTATION_RATE = 75
 dict_activation = {0: 'relu', 1: 'tanh', 2: 'logistic'}
 dict_learning_rate = {0:'constant', 1:'invscaling', 2:'adaptive'}
 
-df = pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/IBOVESPA/DataSet_IBOVESPA.csv')
+df = pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/S%26P500/DataSet_S%26P500.csv')
 
 """# Class"""
 
