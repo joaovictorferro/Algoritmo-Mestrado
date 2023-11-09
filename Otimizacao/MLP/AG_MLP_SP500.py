@@ -8,6 +8,8 @@ import math
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error
 import warnings
+from statistics import mean
+from sklearn.model_selection import KFold
 from sklearn.neural_network import MLPRegressor
 
 warnings.filterwarnings('ignore')
@@ -141,12 +143,27 @@ def score(population_test):
           batch_size=round(batch_size),
           max_iter=round(max_iter)
       )
-  
-      model.fit(X_train.reshape(-1,1), y_train)
 
-      y_pred = model.predict(X_train.reshape(-1,1))
+      kfold = KFold(n_splits=5)
+      
+      array_MSE = []
+      
+      for train_index, test_index in kfold.split(X_train):
+        x_train, x_test = X_train[train_index], X_train[test_index]
+        y_train, y_test = Y_train[train_index], Y_train[test_index]
+        
+        model.fit(x_train.reshape(-1,1), y_train)
+        
+        predictions = model.predict(x_test.reshape(-1,1))
+        mse = mean_squared_error(y_test, predictions)
+        
+        array_MSE.append(mse)
+    
+      # model.fit(X_train.reshape(-1,1), y_train)
 
-      ind.score = mean_squared_error(y_train, y_pred) 
+      # y_pred = model.predict(X_train.reshape(-1,1))
+
+      ind.score = mean(array_MSE) 
       # print(f'Score {mean_squared_error(y_train, y_pred)}')
 
 """# Init Population"""
@@ -196,7 +213,7 @@ def preprocessing(df_):
 
 Train,Test=preprocessing(df) # Realiza o pré-processamento
 X_train = np.array([x for x in range(len(Train))])
-y_train = Train.ravel()
+Y_train = Train.ravel()
 
 init_population()
 
@@ -212,8 +229,8 @@ while True:
   POPULATION = selection(POPULATION,NEW_POPULATION)
   NEW_POPULATION.clear()
   
-  for ind in NEW_POPULATION:
-    print(f'Schema {ind.schema} Score {ind.score} Tamanho {len(ind.schema)}')
+  # for ind in POPULATION:
+  #   print(f'Schema {ind.schema} Score {ind.score} Tamanho {len(ind.schema)}')
 
 # #     # min_score = min(POPULATION, key=lambda x: x.score).score
 

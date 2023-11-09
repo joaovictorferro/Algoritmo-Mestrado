@@ -6,9 +6,9 @@ sys.version
 import pandas as pd
 import numpy as np
 
-from sklearn.metrics import r2_score
-
 from sklearn.svm import SVR
+
+from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error, mean_absolute_error
 
 from sklearn.preprocessing import StandardScaler
 
@@ -16,19 +16,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 """# Leitura Database"""
-
-data_All=pd.DataFrame()
-x_batches_Full=[]
-y_batches_Full=[]
-X_Test_Full=[]
-Y_Test_Full=[]
-
-range_list = [1]
-data = pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/S%26P500/DataSet_S%26P500.csv')
-
-data.shape
-
-data.columns
+data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/IBOVESPA/DataSet_IBOVESPA.csv')
 
 """# Preprocessamento"""
 
@@ -66,30 +54,19 @@ def preprocessing(df_):
 
 Train,Test=preprocessing(data) # Realiza o pré-processamento
 
-"""# GridSearch"""
-
-from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
-from sklearn.metrics import mean_squared_error
-
 X_Train = np.array([x for x in range(len(Train))])
 Train = Train.ravel()
 
-param_grid = {
-    'kernel': ['linear', 'rbf', 'sigmoid'],
-    'C': [0.1, 1, 10],
-    'epsilon': [0.1, 0.2, 0.5],
-    'gamma': [0.1, 0.2, 0.5],
-    'max_iter': [1000, 10000, 100000]
-}
+X_Test = np.array([x for x in range(1700,2428)])
+# Test = Test.ravel()
 
-svr = SVR()
+# Defina o modelo base
+svr = SVR(C= 8.30, epsilon =  1.0 , gamma = 0.64, kernel = 'rbf', max_iter=  39288).fit(X_Train.reshape(-1,1), Train)
 
-# Defina scoring como 'neg_mean_squared_error' para MSE
-scoring = 'neg_mean_squared_error'
 
-# Use GridSearchCV com scoring especificado
-grid_search = GridSearchCV(svr, param_grid, cv=5, scoring=scoring,n_jobs=-1,verbose=2)
-grid_search.fit(X_Train.reshape(-1, 1),Train)
+prediction = svr.predict(X_Test.reshape(-1,1))
 
-# Exiba os melhores hiperparâmetros encontrados
-print("Melhores hiperparâmetros:", grid_search.best_params_)
+print("MSE: ", mean_squared_error(Test, prediction, squared=True))
+print("RMSE: ", mean_squared_error(Test, prediction, squared=False))
+print("MAPE: ",mean_absolute_percentage_error(Test, prediction))
+print("MAE: ", mean_absolute_error(Test, prediction))

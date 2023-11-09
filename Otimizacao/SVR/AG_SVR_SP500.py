@@ -7,10 +7,10 @@ import pandas as pd
 import math
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error
+import warnings
 from statistics import mean
 from sklearn.model_selection import KFold
-import warnings
-from sklearn.tree import DecisionTreeRegressor
+from sklearn.svm import SVR
 
 warnings.filterwarnings('ignore')
 
@@ -22,8 +22,7 @@ LENGTH_POPULATION = 10
 CROSSOVER_RATE = 90
 MUTATION_RATE = 75
 
-dict_criterion = {0: 'squared_error', 1: 'friedman_mse', 2: 'absolute_error'}
-dict_max_features = {0:'sqrt', 1: 'log2'}
+dict_linear = {0: 'linear', 1:'rbf', 2:'sigmoid'}
 
 df = pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/S%26P500/DataSet_S%26P500.csv')
 
@@ -61,10 +60,6 @@ def mutation(population_):
     array_2 = [] #armazena o schema do individuo para nao alterar o original
     array_2 = ind.schema # pega o caminho do schema
 
-    # yes = np.random.randint(0,100) #verifica se vai ocorrer a mutacao
-
-    # if yes <= MUTATION_RATE: #se a mutacao for menor ocorre a permutacao
-
     # print(ind)
     for i in range(len(ind.schema)):
       
@@ -74,16 +69,11 @@ def mutation(population_):
         if i == 0:
           array_2[i] = random.randint(0,2)
         elif i == 1:
-          array_2[i] = random.randint(0,1)
-        elif i == 2:
-          array_2[i] = random.randint(1,100)
-        elif i == 3:
-          array_2[i] = random.randint(0,1)
+          array_2[i] = random.uniform(0.1,10)
+        elif i >= 2 and i <= 3:
+          array_2[i] = random.uniform(0.1,1.0)
         elif i == 4:
-         array_2[i] = random.randint(1,100)
-        elif i == 5:
-            array_2[i] = random.uniform(0.01, 1.0)
-    
+          array_2[i] = random.randint(1000,100000)
     array.append(Chromosome(array_2))
 
   return array
@@ -120,26 +110,16 @@ def crossOver(population):
 def score(population_test):
   
   for ind in population_test:
-    criterion,  is_none, max_depth, max_features, min_samples_leaf, min_samples_split = ind.schema
-
-    if is_none == 1:
-
-        model = DecisionTreeRegressor(criterion = dict_criterion[criterion], 
-                                      max_depth = None,
-                                      max_features = dict_max_features[max_features],
-                                      min_samples_leaf = min_samples_leaf, 
-                                      min_samples_split = min_samples_split,
-                                      splitter = 'best')
-    else:
-        model = model = DecisionTreeRegressor(criterion = dict_criterion[criterion], 
-                                      max_depth = max_depth,
-                                      max_features = dict_max_features[max_features],
-                                      min_samples_leaf = min_samples_leaf, 
-                                      min_samples_split = min_samples_split,
-                                      splitter = 'best')
-
+    linear, c, epsilon, gamma, max_iter = ind.schema
+  
+    model = SVR(C = c, 
+                  epsilon = epsilon, 
+                  gamma = gamma, 
+                  kernel = dict_linear[linear], 
+                  max_iter = max_iter)
+          
     kfold = KFold(n_splits=5)
-    
+      
     array_MSE = []
     
     for train_index, test_index in kfold.split(X_train):
@@ -159,7 +139,6 @@ def score(population_test):
 
     ind.score = mean(array_MSE) 
     # print(f'Score {mean_squared_error(y_train, y_pred)}')
-
 """# Init Population"""
 
 def init_population():
@@ -167,11 +146,10 @@ def init_population():
   for i in range(LENGTH_POPULATION):
     subject = []
     subject.append(random.randint(0,2)) 
-    subject.append(random.randint(0,1))
-    subject.append(random.randint(1,100))
-    subject.append(random.randint(0,1))
-    subject.append(random.randint(1,100))
-    subject.append(random.uniform(0.01, 1.0))
+    subject.append(random.uniform(0.1,10))
+    subject.append(random.uniform(0.1,1.0))
+    subject.append(random.uniform(0.1,1.0))
+    subject.append(random.randint(1000,100000))
     
     
     POPULATION.append(Chromosome(subject))

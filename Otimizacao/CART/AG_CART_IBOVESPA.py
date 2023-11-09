@@ -7,6 +7,8 @@ import pandas as pd
 import math
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error
+from statistics import mean
+from sklearn.model_selection import KFold
 import warnings
 from sklearn.tree import DecisionTreeRegressor
 
@@ -118,30 +120,45 @@ def crossOver(population):
 def score(population_test):
   
   for ind in population_test:
-      criterion,  is_none, max_depth, max_features, min_samples_leaf, min_samples_split = ind.schema
+    criterion,  is_none, max_depth, max_features, min_samples_leaf, min_samples_split = ind.schema
+
+    if is_none == 1:
+
+        model = DecisionTreeRegressor(criterion = dict_criterion[criterion], 
+                                      max_depth = None,
+                                      max_features = dict_max_features[max_features],
+                                      min_samples_leaf = min_samples_leaf, 
+                                      min_samples_split = min_samples_split,
+                                      splitter = 'best')
+    else:
+        model = model = DecisionTreeRegressor(criterion = dict_criterion[criterion], 
+                                      max_depth = max_depth,
+                                      max_features = dict_max_features[max_features],
+                                      min_samples_leaf = min_samples_leaf, 
+                                      min_samples_split = min_samples_split,
+                                      splitter = 'best')
+
+    kfold = KFold(n_splits=5)
+    
+    array_MSE = []
+    
+    for train_index, test_index in kfold.split(X_train):
+      x_train, x_test = X_train[train_index], X_train[test_index]
+      y_train, y_test = Y_train[train_index], Y_train[test_index]
+      
+      model.fit(x_train.reshape(-1,1), y_train)
+      
+      predictions = model.predict(x_test.reshape(-1,1))
+      mse = mean_squared_error(y_test, predictions)
+      
+      array_MSE.append(mse)
   
-      if is_none == 1:
+    # model.fit(X_train.reshape(-1,1), y_train)
 
-          model = DecisionTreeRegressor(criterion = dict_criterion[criterion], 
-                                        max_depth = None,
-                                        max_features = dict_max_features[max_features],
-                                        min_samples_leaf = min_samples_leaf, 
-                                        min_samples_split = min_samples_split,
-                                        splitter = 'best')
-      else:
-          model = model = DecisionTreeRegressor(criterion = dict_criterion[criterion], 
-                                        max_depth = max_depth,
-                                        max_features = dict_max_features[max_features],
-                                        min_samples_leaf = min_samples_leaf, 
-                                        min_samples_split = min_samples_split,
-                                        splitter = 'best')
-  
-      model.fit(X_train.reshape(-1,1), y_train)
+    # y_pred = model.predict(X_train.reshape(-1,1))
 
-      y_pred = model.predict(X_train.reshape(-1,1))
-
-      ind.score = mean_squared_error(y_train, y_pred) 
-      # print(f'Score {mean_squared_error(y_train, y_pred)}')
+    ind.score = mean(array_MSE) 
+    # print(f'Score {mean_squared_error(y_train, y_pred)}')
 
 """# Init Population"""
 
@@ -187,7 +204,7 @@ def preprocessing(df_):
 
 Train,Test=preprocessing(df) # Realiza o pré-processamento
 X_train = np.array([x for x in range(len(Train))])
-y_train = Train.ravel()
+Y_train = Train.ravel()
 
 init_population()
 
