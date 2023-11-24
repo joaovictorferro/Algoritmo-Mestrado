@@ -21,8 +21,6 @@ data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOV
 """# Preprocessamento"""
 
 def preprocessing(df_):
-    cols=df_.columns
-
     Train=df_.iloc[0:1700,:] # Cria o dataset de Treino com 1700
     Test=df_.iloc[1700:,:] #Cria o dataset de teste 738
     Train=Train.fillna(Train.mean()) # Completa o dataset onde estiver vazio com a média do dataset de Treino

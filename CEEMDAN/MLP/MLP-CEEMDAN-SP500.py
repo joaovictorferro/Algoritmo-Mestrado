@@ -86,18 +86,18 @@ if __name__ == "__main__":
         y_train = np.array(y_train)
 
         ##########################################Modelo##################################
-        cart = MLPRegressor(activation= 'relu', alpha=0.01,batch_size= 64, hidden_layer_sizes= (50,50), 
+        mlp = MLPRegressor(activation= 'relu', alpha=0.01,batch_size= 64, hidden_layer_sizes= (50,50), 
                           learning_rate = 'constant',max_iter= 300, solver= 'adam').fit(X_train, y_train)
 
         # Transforme X_test em matriz 2D
         X_test = np.array(X_test).reshape(-1, 1)
 
-        prediction_Y = cart.predict(X_test)
+        prediction_Y = mlp.predict(X_test)
         imfs_prediction.append(prediction_Y)
 
         i += 1
 
-    prediction = cart.predict(X_Test.reshape(-1, 1))
+    prediction = mlp.predict(X_Test.reshape(-1, 1))
 
     print("MSE: ", mean_squared_error(Test, prediction, squared=True))
     print("RMSE: ", mean_squared_error(Test, prediction, squared=False))
