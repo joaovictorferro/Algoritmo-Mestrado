@@ -8,12 +8,12 @@ import numpy as np
 from PyEMD import CEEMDAN
 from sklearn.svm import SVR
 from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error, mean_absolute_error
-import Completo_SVR_AG_IBOVESPA as CSAI
+import Completo_SVR_AG as CSA
 
 from sklearn.preprocessing import StandardScaler
 
-import warnings
-warnings.filterwarnings("ignore")
+# import warnings
+# warnings.filterwarnings("ignore")
 
 """# Dicionário"""
 dict_linear = {0: 'linear', 1:'rbf', 2:'sigmoid'}
@@ -59,7 +59,7 @@ def decomposition(signal):
 
 
 """# Main"""
-if __name__ == "__main__":
+def main():
     
     Train,Test=preprocessing(data) # Realiza o pré-processamento
 
@@ -90,7 +90,7 @@ if __name__ == "__main__":
         y_train = np.array(y_train)
 
         ##########################################Modelo##################################
-        linear, c, epsilon, gamma, max_iter = CSAI.start(X_train)
+        linear, c, epsilon, gamma, max_iter = CSA.start(y_train)
   
         svr = SVR(C = c, 
                   epsilon = epsilon, 
@@ -106,9 +106,13 @@ if __name__ == "__main__":
 
         i += 1
 
-    prediction = svr.predict(X_Test.reshape(-1, 1))
+    # Combine todas as previsões para obter o resultado final
+    final_prediction = np.sum(imfs_prediction, axis=0)
 
-    print("MSE: ", mean_squared_error(Test, prediction, squared=True))
-    print("RMSE: ", mean_squared_error(Test, prediction, squared=False))
-    print("MAPE: ",mean_absolute_percentage_error(Test, prediction))
-    print("MAE: ", mean_absolute_error(Test, prediction))
+    print("MSE: ", mean_squared_error(Test, final_prediction, squared=True))
+    print("RMSE: ", mean_squared_error(Test, final_prediction, squared=False))
+    print("MAPE: ",mean_absolute_percentage_error(Test, final_prediction))
+    print("MAE: ", mean_absolute_error(Test, final_prediction))
+    
+if __name__ == "__main__":
+    main()

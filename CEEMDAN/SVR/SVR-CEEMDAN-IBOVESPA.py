@@ -94,10 +94,17 @@ if __name__ == "__main__":
         imfs_prediction.append(prediction_Y)
 
         i += 1
+    
+    final_prediction = np.sum(imfs_prediction, axis=0)
 
-    prediction = svr.predict(X_Test.reshape(-1, 1))
+    print("MSE: ", mean_squared_error(Test, final_prediction, squared=True))
+    print("RMSE: ", mean_squared_error(Test, final_prediction, squared=False))
+    print("MAPE: ",mean_absolute_percentage_error(Test, final_prediction))
+    print("MAE: ", mean_absolute_error(Test, final_prediction))
+    
+    # prediction = svr.predict(X_Test.reshape(-1, 1))
 
-    print("MSE: ", mean_squared_error(Test, prediction, squared=True))
-    print("RMSE: ", mean_squared_error(Test, prediction, squared=False))
-    print("MAPE: ",mean_absolute_percentage_error(Test, prediction))
-    print("MAE: ", mean_absolute_error(Test, prediction))
+    # print("MSE: ", mean_squared_error(Test, prediction, squared=True))
+    # print("RMSE: ", mean_squared_error(Test, prediction, squared=False))
+    # print("MAPE: ",mean_absolute_percentage_error(Test, prediction))
+    # print("MAE: ", mean_absolute_error(Test, prediction))

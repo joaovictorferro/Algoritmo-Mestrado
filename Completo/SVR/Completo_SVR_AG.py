@@ -5,12 +5,12 @@ import numpy as np
 import pandas as pd
 import math
 import random
-from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error
 import warnings
 from statistics import mean
 from sklearn.model_selection import KFold
 from sklearn.svm import SVR
+import gc
 
 warnings.filterwarnings('ignore')
 
@@ -165,7 +165,7 @@ def start(df):
 
   POPULATION = init_population()
 
-  generation = 1
+  generation = 0
   good_number = math.inf
   flag = False
 
@@ -177,6 +177,7 @@ def start(df):
     score(NEW_POPULATION, X_train, Y_train)
     POPULATION = selection(POPULATION,NEW_POPULATION)
     NEW_POPULATION.clear()
+    gc.collect()
 
     min_score = POPULATION[0].score
 
@@ -193,11 +194,13 @@ def start(df):
 
 
     if flag:
-        print("===================================================================")
+        print("=" * 45)
         print(f'Individuo: {POPULATION[0].schema} e o score dele {POPULATION[0].score} geracao {generation}')
-        print("===================================================================")
+        print("=" *45)
         break
     
     generation += 1
+    
+    print(generation)
     
   return POPULATION[0].schema

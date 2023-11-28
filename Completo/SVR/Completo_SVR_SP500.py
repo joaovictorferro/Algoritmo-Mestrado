@@ -1,24 +1,25 @@
 # -*- coding: utf-8 -*-
 
+import sys
+sys.version
 #Import Libraries
-
 import pandas as pd
 import numpy as np
 from PyEMD import CEEMDAN
-from sklearn.neural_network import MLPRegressor
+from sklearn.svm import SVR
 from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error, mean_absolute_error
-import Completo_MLP_AG as CMA
+import Completo_SVR_AG as CSA
+
 from sklearn.preprocessing import StandardScaler
 
 # import warnings
 # warnings.filterwarnings("ignore")
 
 """# Dicionário"""
-dict_activation = {0: 'relu', 1: 'tanh', 2: 'logistic'}
-dict_learning_rate = {0:'constant', 1:'invscaling', 2:'adaptive'}
+dict_linear = {0: 'linear', 1:'rbf', 2:'sigmoid'}
 
 """# Leitura Database"""
-data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/IBOVESPA/DataSet_IBOVESPA.csv')
+data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/S%26P500/DataSet_S%26P500.csv')
 
 """# Preprocessamento"""
 
@@ -89,34 +90,18 @@ def main():
         y_train = np.array(y_train)
 
         ##########################################Modelo##################################
-        quantidade_camada_oculta,hidden_layer_sizes_1,hidden_layer_sizes_2, hidden_layer_sizes_3, activation, learning_rate,alpha, batch_size, max_iter = CMA.start(y_train)
+        linear, c, epsilon, gamma, max_iter = CSA.start(y_train)
   
-        if quantidade_camada_oculta == 2:
-            model = MLPRegressor(
-            hidden_layer_sizes=(hidden_layer_sizes_1,hidden_layer_sizes_2),
-            activation=dict_activation[activation],
-            solver='adam',
-            learning_rate=dict_learning_rate[learning_rate],
-            alpha=alpha,
-            batch_size=batch_size,
-            max_iter=max_iter
-            ).fit(X_train, y_train)
-        else:
-            model = MLPRegressor(
-            hidden_layer_sizes=(hidden_layer_sizes_1,hidden_layer_sizes_2,hidden_layer_sizes_3),
-            activation=dict_activation[round(activation)],
-            solver='adam',
-            learning_rate=dict_learning_rate[round(learning_rate)],
-            alpha=alpha,
-            batch_size=round(batch_size),
-            max_iter=round(max_iter)
-            ).fit(X_train, y_train)
-
+        svr = SVR(C = c, 
+                  epsilon = epsilon, 
+                  gamma = gamma, 
+                  kernel = dict_linear[linear], 
+                  max_iter = max_iter).fit(X_train, y_train)
 
         # Transforme X_test em matriz 2D
         X_test = np.array(X_test).reshape(-1, 1)
 
-        prediction_Y = model.predict(X_test)
+        prediction_Y = svr.predict(X_test)
         imfs_prediction.append(prediction_Y)
 
         i += 1

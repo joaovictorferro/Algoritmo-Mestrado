@@ -1,31 +1,38 @@
-from PyEMD import CEEMDAN
+import Completo_SVR_AG_IBOVESPA as CSAI
+import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
 
-# Gere uma série temporal de exemplo
-signal = np.sin(2 * np.pi * 0.1 * np.arange(1000)) + 0.5 * np.random.randn(1000)
+def preprocessing(df_):
+    Train=df_.iloc[0:1700,:] # Cria o dataset de Treino com 1700
+    Test=df_.iloc[1700:,:] #Cria o dataset de teste 738
+    Train=Train.fillna(Train.mean()) # Completa o dataset onde estiver vazio com a média do dataset de Treino
+    Test=Test.fillna(Test.mean()) # Completa o dataset onde estiver vazio com a média do dataset de Test
 
-# Aplique a CEEMDAN
-ceemdan = CEEMDAN()
-result = ceemdan(signal)
+    # print(Train)
 
-# A variável result contém dois elementos: result[0] são as IMFs e result[1] é o resíduo (ruído)
+        ################################################ Encoding ########################
 
-# Exemplo de visualização das IMFs e do resíduo
-plt.figure(figsize=(12, 8))
+    Train=Train[['Close']]
 
-plt.subplot(len(result[0]) + 1, 1, 1)
-plt.plot(signal, label='Original Signal')
-plt.legend()
+    Train=Train.values # Transforma tudo em uma matriz, sem os index
+    Train = Train.astype('float32') #converte tudo para float32 e ocupa menos espaço na memória
 
-for i in range(len(result[0])):
-    plt.subplot(len(result[0]) + 1, 1, i + 2)
-    plt.plot(result[0][i], label=f'IMF {i + 1}')
-    plt.legend()
+    Test=Test[['Close']]
+    Test=Test.values
+    Test = Test.astype('float32')
 
-plt.subplot(len(result[0]) + 1, 1, len(result[0]) + 1)
-plt.plot(result[1], label='Residue (Noise)')
-plt.legend()
+    Train = Train.astype('float32')
+    normalizer = StandardScaler().fit(Train)
+    Train=normalizer.transform(Train)
 
-plt.tight_layout()
-plt.show()
+    Test = Test.astype('float32')
+    Test=normalizer.transform(Test)
+
+    return Train, Test
+
+data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/IBOVESPA/DataSet_IBOVESPA.csv')
+
+Train,Test=preprocessing(data) # Realiza o pré-processamento
+
+print(CSAI.start(Train))

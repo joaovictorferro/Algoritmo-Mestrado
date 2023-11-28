@@ -2,30 +2,26 @@
 # Imports
 
 import numpy as np
-import random
-import pandas as pd
 import math
-from sklearn.preprocessing import StandardScaler
+import random
 from sklearn.metrics import mean_squared_error
 import warnings
 from statistics import mean
 from sklearn.model_selection import KFold
 from sklearn.neural_network import MLPRegressor
+import gc
 
 warnings.filterwarnings('ignore')
 
 """# Global Variables"""
 
-POPULATION = []
-NEW_POPULATION = []
 LENGTH_POPULATION = 10
 CROSSOVER_RATE = 90
 MUTATION_RATE = 75
 
+"""# Dicionário"""
 dict_activation = {0: 'relu', 1: 'tanh', 2: 'logistic'}
 dict_learning_rate = {0:'constant', 1:'invscaling', 2:'adaptive'}
-
-df = pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/IBOVESPA/DataSet_IBOVESPA.csv')
 
 """# Class"""
 
@@ -50,7 +46,7 @@ def selection(population, new_population):
 
   merged_list.sort(key=lambda schema: schema.score, reverse = False) #classifica em ordem crescente (melhores caminhos)
 
-  return merged_list[:len(POPULATION)] # retorna a lista com o tam da populacao definida (length population = 30)
+  return merged_list[:len(population)] # retorna a lista com o tam da populacao definida (length population = 30)
 
 """# Mutation"""
 
@@ -60,12 +56,7 @@ def mutation(population_):
   for ind in population_: #itera na populacao
     array_2 = [] #armazena o schema do individuo para nao alterar o original
     array_2 = ind.schema # pega o caminho do schema
-
-    # yes = np.random.randint(0,100) #verifica se vai ocorrer a mutacao
-
-    # if yes <= MUTATION_RATE: #se a mutacao for menor ocorre a permutacao
-
-    # print(ind)
+    
     for i in range(len(ind.schema)):
       
       yes = np.random.randint(0,100) #verifica se vai ocorrer a mutacao
@@ -92,32 +83,39 @@ def mutation(population_):
 
 def crossOver(population):
   roulette = []
+  NEW_POPULATION = []
   sum_total_population = sum(ind.score for ind in population)
   
   for ind in population:
     length_individual = round((ind.score/sum_total_population)*100)
-    
-    for i in range(length_individual):
+  
+    for _ in range(length_individual):
       roulette.append(ind.schema)
+
+  max_val = len(roulette) -1
   
-  max = len(roulette) -1
-  
-  while len(NEW_POPULATION) < len(POPULATION):
-    father = roulette[np.random.randint(0,max)]
-    mother = roulette[np.random.randint(0,max)]   
+  while len(NEW_POPULATION) < len(population):
+    result = random.sample(range(0,max_val), 2)
+    # print(f"result{result}")
+    father = roulette[result[0]]
+    mother = roulette[result[1]]   
+
+    # print(f'entrei aqui pai{father} mae {mother}')
     
     if father != mother:
       child = []
       cut = np.random.randint(1,7)
       child.append(father[:cut] + mother[cut:])
       child.append(mother[:cut] + father[cut:])
-      
+
       for downward in child: 
         NEW_POPULATION.append(Chromosome(downward))
 
+  return NEW_POPULATION
+
 """# Score"""
 
-def score(population_test):
+def score(population_test, X_train, Y_train):
   
   for ind in population_test:
       quantidade_camada_oculta,hidden_layer_sizes_1,hidden_layer_sizes_2, hidden_layer_sizes_3, activation, learning_rate,alpha, batch_size, max_iter = ind.schema
@@ -158,10 +156,6 @@ def score(population_test):
         mse = mean_squared_error(y_test, predictions)
         
         array_MSE.append(mse)
-    
-      # model.fit(X_train.reshape(-1,1), y_train)
-
-      # y_pred = model.predict(X_train.reshape(-1,1))
 
       ind.score = mean(array_MSE) 
       # print(f'Score {mean_squared_error(y_train, y_pred)}')
@@ -169,6 +163,7 @@ def score(population_test):
 """# Init Population"""
 
 def init_population():
+  population = []
 
   for i in range(LENGTH_POPULATION):
     subject = []
@@ -183,76 +178,54 @@ def init_population():
     subject.append(random.randint(100,300))
     
     
-    POPULATION.append(Chromosome(subject))
-
-def preprocessing(df_):
-    Train=df_.iloc[0:1700,:] # Cria o dataset de Treino com 1700
-    Test=df_.iloc[1700:,:] #Cria o dataset de teste 738
-    Train=Train.fillna(Train.mean()) # Completa o dataset onde estiver vazio com a média do dataset de Treino
-    Test=Test.fillna(Test.mean()) # Completa o dataset onde estiver vazio com a média do dataset de Test
-
-        ################################################ Encoding ########################
-
-    Train=Train[['Close']]
-
-    Train=Train.values # Transforma tudo em uma matriz, sem os index
-    Train = Train.astype('float32') #converte tudo para float32 e ocupa menos espaço na memória
-
-    Test=Test[['Close']]
-    Test=Test.values
-    Test = Test.astype('float32')
-
-    Train = Train.astype('float32')
-    normalizer = StandardScaler().fit(Train)
-    Train=normalizer.transform(Train)
-
-    Test = Test.astype('float32')
-    Test=normalizer.transform(Test)
-
-    return Train, Test
-
-Train,Test=preprocessing(df) # Realiza o pré-processamento
-X_train = np.array([x for x in range(len(Train))])
-Y_train = Train.ravel()
-
-init_population()
-
-generation = 1
-good_number = math.inf
-flag = False
-
-while True:
-  score(POPULATION)
-  crossOver(POPULATION)
-  NEW_POPULATION = mutation(NEW_POPULATION)
-  score(NEW_POPULATION)
-  POPULATION = selection(POPULATION,NEW_POPULATION)
-  NEW_POPULATION.clear()
+    population.append(Chromosome(subject))
   
-  # for ind in POPULATION:
-  #   print(f'Schema {ind.schema} Score {ind.score} Tamanho {len(ind.schema)}')
-
-# #     # min_score = min(POPULATION, key=lambda x: x.score).score
-
-  min_score = POPULATION[0].score
-
-  # print(min_score)
-
-  if min_score < good_number:
-    good_number = min_score
-    count_aux = 0
-  else:
-    count_aux += 1
-
-  if generation == 1000 or count_aux == 5:
-    flag = True
-
-  # array_points.append(np.mean([t.score for t in POPULATION]))
-
-  if flag:
-    print("===================================================================")
-    print(f'Individuo: {POPULATION[0].schema} e o score dele {POPULATION[0].score} geracao {generation}')
-    print("===================================================================")
-    break
+  return population
   
-  generation += 1
+
+def start(df):
+
+  X_train = np.array([x for x in range(len(df))])
+  Y_train = df.ravel()
+
+  POPULATION = init_population()
+
+  generation = 0
+  good_number = math.inf
+  flag = False
+
+  while True:
+      
+    score(POPULATION, X_train, Y_train)
+    NEW_POPULATION = crossOver(POPULATION)
+    NEW_POPULATION = mutation(NEW_POPULATION)
+    score(NEW_POPULATION, X_train, Y_train)
+    POPULATION = selection(POPULATION,NEW_POPULATION)
+    NEW_POPULATION.clear()
+    gc.collect()
+
+    min_score = POPULATION[0].score
+
+
+    if min_score < good_number:
+        good_number = min_score
+        count_aux = 0
+    else:
+        count_aux += 1
+
+
+    if generation == 1000 or count_aux == 5:
+        flag = True
+
+
+    if flag:
+        print("=" * 45)
+        print(f'Individuo: {POPULATION[0].schema} e o score dele {POPULATION[0].score} geracao {generation}')
+        print("=" *45)
+        break
+    
+    generation += 1
+    
+    print(generation)
+    
+  return POPULATION[0].schema
