@@ -108,7 +108,7 @@ def crossOver(population):
     
     if father != mother:
       child = []
-      cut = np.random.randint(1,10)
+      cut = np.random.randint(1,4)
       child.append(father[:cut] + mother[cut:])
       child.append(mother[:cut] + father[cut:])
       
