@@ -11,17 +11,14 @@ from pmdarima import auto_arima
 import warnings
 warnings.filterwarnings("ignore")
 
-data = pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/IBOVESPA/DataSet_IBOVESPA.csv')
+data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/IBOVESPA/IBOVESPA.csv')
+
+data = data.dropna()
 
 def preprocessing(df_):
-    cols=df_.columns
+    Train=df_.iloc[0:1900,:] # Cria o dataset de Treino com 1900
+    Test=df_.iloc[1900:,:] #Cria o dataset de teste 738
 
-    Train=df_.iloc[0:1700,:] # Cria o dataset de Treino com 1700
-    Test=df_.iloc[1700:,:] #Cria o dataset de teste 738
-    Train=Train.fillna(Train.mean()) # Completa o dataset onde estiver vazio com a média do dataset de Treino
-    Test=Test.fillna(Test.mean()) # Completa o dataset onde estiver vazio com a média do dataset de Test
-
-    # print(Train)
 
         ################################################ Encoding ########################
 
@@ -66,7 +63,7 @@ model.fit(Train)
 
 prediction = model.predict_in_sample()
 
-prediction_arima_final, conf_int = model.predict(n_periods=728, return_conf_int=True)
+prediction_arima_final, conf_int = model.predict(n_periods=816, return_conf_int=True)
 
 print("MSE: ", mean_squared_error(Test, prediction_arima_final, squared=True))
 print("RMSE: ", mean_squared_error(Test, prediction_arima_final, squared=False))

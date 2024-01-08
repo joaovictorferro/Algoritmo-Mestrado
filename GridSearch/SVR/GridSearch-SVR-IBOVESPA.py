@@ -15,16 +15,15 @@ import warnings
 warnings.filterwarnings("ignore")
 
 """# Leitura Database"""
-data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/IBOVESPA/DataSet_IBOVESPA.csv')
+data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/IBOVESPA/IBOVESPA.csv')
+
+data = data.dropna()
 
 """# Preprocessamento"""
 
 def preprocessing(df_):
-    Train=df_.iloc[0:1700,:] # Cria o dataset de Treino com 1700
-    Test=df_.iloc[1700:,:] #Cria o dataset de teste 738
-    Train=Train.fillna(Train.mean()) # Completa o dataset onde estiver vazio com a média do dataset de Treino
-    Test=Test.fillna(Test.mean()) # Completa o dataset onde estiver vazio com a média do dataset de Test
-
+    Train=df_.iloc[0:1900,:] # Cria o dataset de Treino com 1700
+    Test=df_.iloc[1900:,:] #Cria o dataset de teste 738
     # print(Train)
 
         ################################################ Encoding ########################
