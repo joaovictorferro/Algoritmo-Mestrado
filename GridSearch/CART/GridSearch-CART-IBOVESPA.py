@@ -73,9 +73,9 @@ cart = DecisionTreeRegressor(random_state=42)
 # Defina scoring como 'neg_mean_squared_error' para MSE
 scoring = 'neg_mean_squared_error'
 
-kfold = KFold(n_splits=5, shuffle=True, random_state=42)
+# kfold = KFold(n_splits=5, shuffle=False, random_state=42)
 # Use GridSearchCV com scoring especificado
-grid_search = GridSearchCV(cart, param_grid, cv=kfold, scoring=scoring,n_jobs=-1,verbose=2)
+grid_search = GridSearchCV(cart, param_grid, cv=5, scoring=scoring,n_jobs=-1,verbose=2)
 grid_search.fit(X_Train.reshape(-1, 1),Train)
 
 # # Exiba os melhores hiperparâmetros encontrados

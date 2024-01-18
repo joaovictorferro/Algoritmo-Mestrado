@@ -5,7 +5,6 @@ sys.version
 #Import Libraries
 import pandas as pd
 import numpy as np
-
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error, mean_absolute_error
 
@@ -14,19 +13,20 @@ from sklearn.preprocessing import StandardScaler
 import warnings
 warnings.filterwarnings("ignore")
 
+
+import perf_tool
+
 """# Leitura Database"""
-data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/IBOVESPA/DataSet_IBOVESPA.csv')
+data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/IBOVESPA/IBOVESPA.csv')
+
+data = data.dropna()
 
 """# Preprocessamento"""
 
 def preprocessing(df_):
-    Train=df_.iloc[0:1700,:] # Cria o dataset de Treino com 1700
-    Test=df_.iloc[1700:,:] #Cria o dataset de teste 738
-    Train=Train.fillna(Train.mean()) # Completa o dataset onde estiver vazio com a média do dataset de Treino
-    Test=Test.fillna(Test.mean()) # Completa o dataset onde estiver vazio com a média do dataset de Test
-
-    # print(Train)
-
+    Train=df_.iloc[0:1900,:] # Cria o dataset de Treino com 1700
+    Test=df_.iloc[1900:,:] #Cria o dataset de teste 738
+    
         ################################################ Encoding ########################
 
     Train=Train[['Close']]
@@ -54,12 +54,14 @@ Train,Test=preprocessing(data) # Realiza o pré-processamento
 X_Train = np.array([x for x in range(len(Train))])
 Train = Train.ravel()
 
-X_Test = np.array([x for x in range(1700,2428)])
-# Test = Test.ravel()
+X_Test = np.array([x for x in range(1900,2716)])
+
+
 
 CART = DecisionTreeRegressor(criterion= 'absolute_error', max_depth =None,max_features='sqrt', 
-                                min_samples_leaf= 1, min_samples_split= 10,splitter='best').fit(X_Train.reshape(-1,1), Train)
-
+                                min_samples_leaf= 1, min_samples_split= 10,splitter='best')
+    
+CART.fit(X_Train.reshape(-1,1), Train)
 
 prediction = CART.predict(X_Test.reshape(-1,1))
 

@@ -73,11 +73,8 @@ mlp = MLPRegressor()
 # Defina scoring como 'neg_mean_squared_error' para MSE
 scoring = 'neg_mean_squared_error'
 
-# Estratégia de validação cruzada temporal
-tscv = TimeSeriesSplit(n_splits=5)
-
 # Use GridSearchCV com scoring especificado
-grid_search = GridSearchCV(mlp, param_grid, cv=tscv, scoring=scoring,n_jobs=-1,verbose=2)
+grid_search = GridSearchCV(mlp, param_grid, cv=5, scoring=scoring,n_jobs=-1,verbose=2)
 grid_search.fit(X_Train.reshape(-1, 1),Train)
 
 # Exiba os melhores hiperparâmetros encontrados

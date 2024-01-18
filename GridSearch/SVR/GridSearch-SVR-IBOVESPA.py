@@ -68,9 +68,7 @@ svr = SVR()
 # Defina scoring como 'neg_mean_squared_error' para MSE
 scoring = 'neg_mean_squared_error'
 
-# Use GridSearchCV com scoring especificado
-kfold = KFold(n_splits=5, shuffle=True, random_state=42)
-grid_search = GridSearchCV(svr, param_grid, cv=kfold, scoring=scoring,n_jobs=-1, verbose=2)
+grid_search = GridSearchCV(svr, param_grid, cv=5, scoring=scoring,n_jobs=-1, verbose=2)
 grid_search.fit(X_Train.reshape(-1, 1),Train)
 
 # Exiba os melhores hiperparâmetros encontrados

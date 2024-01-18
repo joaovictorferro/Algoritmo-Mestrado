@@ -15,17 +15,15 @@ import warnings
 warnings.filterwarnings("ignore")
 
 """# Leitura Database"""
-data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/IBOVESPA/DataSet_IBOVESPA.csv')
+data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/IBOVESPA/IBOVESPA.csv')
+
+data = data.dropna()
 
 """# Preprocessamento"""
 
 def preprocessing(df_):
-    Train=df_.iloc[0:1700,:] # Cria o dataset de Treino com 1700
-    Test=df_.iloc[1700:,:] #Cria o dataset de teste 738
-    Train=Train.fillna(Train.mean()) # Completa o dataset onde estiver vazio com a média do dataset de Treino
-    Test=Test.fillna(Test.mean()) # Completa o dataset onde estiver vazio com a média do dataset de Test
-
-    # print(Train)
+    Train=df_.iloc[0:1900,:] # Cria o dataset de Treino com 1700
+    Test=df_.iloc[1900:,:] #Cria o dataset de teste 738
 
         ################################################ Encoding ########################
 
@@ -49,7 +47,7 @@ def preprocessing(df_):
 
 
 def decomposition(signal):
-  ceemdan  =  CEEMDAN()
+  ceemdan  =  CEEMDAN(trials = 100, epsilon = 0.005, ext_EMD=None, parallel = True)
   imfs = ceemdan(signal.reshape(-1))
   return imfs
 
@@ -65,7 +63,7 @@ if __name__ == "__main__":
     X_Train = np.array([x for x in range(len(Train))])
     Train = Train.ravel()
 
-    X_Test = np.array([x for x in range(1700,2428)])
+    X_Test = np.array([x for x in range(1900,2716)])
     # Test = Test.ravel()
 
     imfs_prediction = []
