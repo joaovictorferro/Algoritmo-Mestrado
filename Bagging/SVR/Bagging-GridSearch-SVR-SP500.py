@@ -8,38 +8,22 @@ import numpy as np
 
 from sklearn.svm import SVR
 from sklearn.ensemble import BaggingRegressor
-from sklearn.model_selection import GridSearchCV, KFold
+from sklearn.model_selection import TimeSeriesSplit, GridSearchCV
 from sklearn.preprocessing import StandardScaler
 
 import warnings
 warnings.filterwarnings("ignore")
 
 """# Leitura Database"""
+data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/S%26P500/%5ESPX.csv')
 
-data_All=pd.DataFrame()
-x_batches_Full=[]
-y_batches_Full=[]
-X_Test_Full=[]
-Y_Test_Full=[]
-
-range_list = [1]
-data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/S%26P500/DataSet_S%26P500.csv')
-
-data.shape
-
-data.columns
+data = data.dropna()
 
 """# Preprocessamento"""
 
 def preprocessing(df_):
-    cols=df_.columns
-
-    Train=df_.iloc[0:1700,:] # Cria o dataset de Treino com 1700
-    Test=df_.iloc[1700:,:] #Cria o dataset de teste 738
-    Train=Train.fillna(Train.mean()) # Completa o dataset onde estiver vazio com a média do dataset de Treino
-    Test=Test.fillna(Test.mean()) # Completa o dataset onde estiver vazio com a média do dataset de Test
-
-    # print(Train)
+    Train=df_.iloc[0:1900,:] # Cria o dataset de Treino
+    Test=df_.iloc[1900:,:] #Cria o dataset de teste
 
         ################################################ Encoding ########################
 
@@ -69,7 +53,7 @@ X_Train = np.array([x for x in range(len(Train))])
 Train = Train.ravel()
 
 # Defina o modelo base, neste caso, uma árvore de decisão
-base_model = SVR(C= 0.1, epsilon = 0.5, gamma = 0.1, kernel = 'linear', max_iter= 10000)
+base_model = SVR(C= 0.1, epsilon = 0.5, gamma = 0.1, kernel = 'linear', max_iter= 1000)
 
 # Defina o número de estimadores que você deseja testar
 estimator_range = [10, 20, 30, 40, 50,60,70,80,90,100]  # Você pode ajustar essa lista conforme necessário
@@ -80,8 +64,9 @@ param_grid = {
 }
 
 # Use validação cruzada para encontrar o número ideal de estimadores
-kfold = KFold(n_splits=5, shuffle=True, random_state=42)
-grid = GridSearchCV(BaggingRegressor(base_model), param_grid, cv=kfold, scoring='neg_mean_squared_error', n_jobs=-1,verbose=2)
+tscv = TimeSeriesSplit(n_splits=5)
+
+grid = GridSearchCV(BaggingRegressor(base_model), param_grid, cv=tscv, scoring='neg_mean_squared_error', n_jobs=-1,verbose=2)
 grid.fit(X_Train.reshape(-1,1), Train)
 
 # Imprima os resultados da validação cruzada

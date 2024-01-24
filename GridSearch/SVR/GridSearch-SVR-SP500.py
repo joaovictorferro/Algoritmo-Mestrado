@@ -6,10 +6,8 @@ sys.version
 import pandas as pd
 import numpy as np
 
-from sklearn.metrics import r2_score
-
 from sklearn.svm import SVR
-
+from sklearn.model_selection import TimeSeriesSplit, GridSearchCV
 from sklearn.preprocessing import StandardScaler
 
 import warnings
@@ -73,8 +71,10 @@ svr = SVR()
 # Defina scoring como 'neg_mean_squared_error' para MSE
 scoring = 'neg_mean_squared_error'
 
+tscv = TimeSeriesSplit(n_splits=5)
+
 # Use GridSearchCV com scoring especificado
-grid_search = GridSearchCV(svr, param_grid, cv=5, scoring=scoring,n_jobs=-1,verbose=2)
+grid_search = GridSearchCV(svr, param_grid, cv=tscv, scoring=scoring,n_jobs=-1,verbose=2)
 grid_search.fit(X_Train.reshape(-1, 1),Train)
 
 # Exiba os melhores hiperparâmetros encontrados

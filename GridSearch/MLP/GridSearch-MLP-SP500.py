@@ -5,11 +5,8 @@ sys.version
 #Import Libraries
 import pandas as pd
 import numpy as np
-
-from sklearn.metrics import r2_score
-
 from sklearn.neural_network import MLPRegressor
-
+from sklearn.model_selection import TimeSeriesSplit, GridSearchCV
 from sklearn.preprocessing import StandardScaler
 
 import warnings
@@ -72,6 +69,8 @@ mlp = MLPRegressor()
 
 # Defina scoring como 'neg_mean_squared_error' para MSE
 scoring = 'neg_mean_squared_error'
+
+tscv = TimeSeriesSplit(n_splits=5)
 
 # Use GridSearchCV com scoring especificado
 grid_search = GridSearchCV(mlp, param_grid, cv=5, scoring=scoring,n_jobs=-1,verbose=2)

@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
+import time
+tempo_inicio = time.time()
 
 import sys
 sys.version
 #Import Libraries
 import pandas as pd
 import numpy as np
+import time
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error, mean_absolute_error
 
@@ -12,9 +15,6 @@ from sklearn.preprocessing import StandardScaler
 
 import warnings
 warnings.filterwarnings("ignore")
-
-
-import perf_tool
 
 """# Leitura Database"""
 data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/IBOVESPA/IBOVESPA.csv')
@@ -69,3 +69,9 @@ print("MSE: ", mean_squared_error(Test, prediction, squared=True))
 print("RMSE: ", mean_squared_error(Test, prediction, squared=False))
 print("MAPE: ",mean_absolute_percentage_error(Test, prediction))
 print("MAE: ", mean_absolute_error(Test, prediction))
+
+tempo_fim = time.time()
+
+tempo_total = tempo_fim - tempo_inicio
+
+print(f"O código levou {tempo_total} segundos para ser executado.")
