@@ -1,55 +1,53 @@
-import numpy as np
+# -*- coding: utf-8 -*-
+import sys
+sys.version
+#Import Libraries
+import statistics
 import pandas as pd
-# import statsmodels.api as sm
-from sklearn.model_selection import KFold
-from sklearn.metrics import mean_squared_error
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error, mean_absolute_error
-
+import numpy as np
 import pmdarima as pm
 from pmdarima import auto_arima
-
 from sklearn.neural_network import MLPRegressor
-from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error, mean_absolute_error
+from sklearn.model_selection import TimeSeriesSplit
 
-import warnings
-warnings.filterwarnings("ignore")
+from sklearn.preprocessing import StandardScaler
 
-data = pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/IBOVESPA/DataSet_IBOVESPA.csv')
+# import warnings
+# warnings.filterwarnings("ignore")
 
-def preprocessing(df_):
-    cols=df_.columns
+"""# Leitura Database"""
+data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/IBOVESPA/IBOVESPA.csv')
 
-    Train=df_.iloc[0:1700,:] # Cria o dataset de Treino com 1700
-    Test=df_.iloc[1700:,:] #Cria o dataset de teste 738
-    Train=Train.fillna(Train.mean()) # Completa o dataset onde estiver vazio com a média do dataset de Treino
-    Test=Test.fillna(Test.mean()) # Completa o dataset onde estiver vazio com a média do dataset de Test
+data = data.dropna()
 
-    # print(Train)
+""" #Diconario"""
+dicionario_metricas = {
+    'MSE': [],
+    'RMSE': [],
+    'MAE': [],
+    'MAPE':[]
+}
 
-        ################################################ Encoding ########################
+"""# Preprocessamento"""
 
-    Train=Train[['Close']]
+def preprocessing(train_aux, test_aux):
+    
+    Train = train_aux.astype('float32')
+    normalizer = StandardScaler().fit(train_aux)
+    Train=normalizer.transform(train_aux)
 
-    Train=Train.values # Transforma tudo em uma matriz, sem os index
-    Train = Train.astype('float32') #converte tudo para float32 e ocupa menos espaço na memória
+    Test = test_aux.astype('float32')
+    Test=normalizer.transform(test_aux)
 
-    Test=Test[['Close']]
-    Test=Test.values
-    Test = Test.astype('float32')
+    return Train, Test
 
-    Train = Train.astype('float32')
-    normalizer = StandardScaler().fit(Train)
-    Train=normalizer.transform(Train)
 
-    Test = Test.astype('float32')
-    Test=normalizer.transform(Test)
-
-    return Train.reshape(-1), Test.reshape(-1)
-
-Train, Test = preprocessing(data)
-
-model = auto_arima(Train,
+def resultado(x_train,x_test,y_train,y_test):
+    y_train = y_train.ravel()
+    y_test = y_test.ravel()
+    
+    model = auto_arima(Train,
                     start_p=0,
                     start_q=0,
                     d=0,
@@ -66,31 +64,65 @@ model = auto_arima(Train,
                     error_action='ignore',suppress_warnings=True,
                     stepwise=True)
 
-# # Faça previsões
-# prediction = arima_fit.predict(start=0,
-#                                 end=len(Train) - 1, typ='levels')
+    model.fit(y_train)
 
-model.fit(Train)
+    prediction = model.predict_in_sample()
 
-prediction = model.predict_in_sample()
+    residuo = y_train - prediction
 
-residuo = Train - prediction
+    mlp = MLPRegressor(activation= 'tanh', alpha=0.001,batch_size= 64, hidden_layer_sizes= (100,50,25), 
+                          learning_rate = 'adaptive',max_iter= 200, solver= 'adam').fit(x_train, residuo)
 
-X_Train = np.array([x for x in range(len(residuo))])
-residuo = residuo.ravel()
+    # Faça previsões
+    prediction_arima_final, conf_int = model.predict(n_periods=len(x_test), return_conf_int=True)
 
-X_Test = np.array([x for x in range(1700,2428)])
+    prediction_CART_Final = mlp.predict(x_test)
 
-mlp = MLPRegressor(activation= 'tanh', alpha=0.0001,batch_size= 128, hidden_layer_sizes= (50,50), 
-                           learning_rate = 'adaptive',max_iter= 200, solver= 'adam').fit(X_Train.reshape(-1,1), Train)
+    prediction_final = prediction_arima_final + prediction_CART_Final
 
-prediction_arima_final, conf_int = model.predict(n_periods=728, return_conf_int=True)
+    dicionario_metricas['MSE'].append(mean_squared_error(y_test, prediction_final, squared=True))
+    dicionario_metricas['MAE'].append(mean_absolute_error(y_test, prediction_final))
+    dicionario_metricas['MAPE'].append(mean_absolute_percentage_error(y_test, prediction_final))
+    dicionario_metricas['RMSE'].append(mean_squared_error(y_test, prediction_final, squared=False))
 
-prediction_CART_Final = mlp.predict(X_Test.reshape(-1,1))
+"""# Main"""
 
-prediction_final = prediction_arima_final + prediction_CART_Final
+#Base dos 70% para treino
 
-print("MSE: ", mean_squared_error(Test, prediction_final, squared=True))
-print("RMSE: ", mean_squared_error(Test, prediction_final, squared=False))
-print("MAPE: ",mean_absolute_percentage_error(Test, prediction_final))
-print("MAE: ", mean_absolute_error(Test, prediction_final))
+X_Train = np.array([x for x in range(1900)])
+
+X_Test = np.array([x for x in range(1900,2716)])
+
+tscv = TimeSeriesSplit(n_splits=29)
+
+count = 0
+
+for train_index, test_index in tscv.split(X_Test):
+  X_Train_aux = []
+  train_set, test_set = X_Test[train_index], X_Test[test_index]
+
+  if count == 0:
+    Train,Test = preprocessing((np.array(data.loc[:, 'Close'][0:1900])).reshape(-1, 1),(np.array(data.loc[:, 'Close'][1900:])).reshape(-1, 1)) # Realiza a normalizacao
+    test_total = len(train_set) + len(test_set)
+
+    resultado(X_Train.reshape(-1,1), train_set.reshape(-1,1), Train, Test[:len(train_set)])
+
+    X_Train_aux = np.concatenate((X_Train, train_set), axis=0)
+
+    Train,Test = preprocessing((np.array(data.loc[:, 'Close'][0:len(X_Train_aux)])).reshape(-1, 1),(np.array(data.loc[:, 'Close'][len(X_Train_aux):])).reshape(-1, 1)) # Realiza o pré-processamento
+    
+    resultado(X_Train_aux.reshape(-1,1), test_set.reshape(-1,1), Train, Test[:len(test_set)])
+  else:
+    X_Train_aux = np.concatenate((X_Train, train_set), axis=0)
+
+    Train,Test = preprocessing((np.array(data.loc[:, 'Close'][0:len(X_Train_aux)])).reshape(-1, 1),(np.array(data.loc[:, 'Close'][len(X_Train_aux):])).reshape(-1, 1)) # Realiza o pré-processamento
+    
+    resultado(X_Train_aux.reshape(-1,1), test_set.reshape(-1,1), Train, Test[:len(test_set)])
+  
+  count += 1
+
+print(f"Media do MSE: {statistics.mean(dicionario_metricas['MSE'])}")
+print(dicionario_metricas['MSE'])
+print(f"Media do RMSE: {statistics.mean(dicionario_metricas['RMSE'])}")
+print(f"Media do MAE: {statistics.mean(dicionario_metricas['MAE'])}")
+print(f"Media do MAPE: {statistics.mean(dicionario_metricas['MAPE'])}")

@@ -1,48 +1,46 @@
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import KFold
-from sklearn.metrics import mean_squared_error
+import statistics
+from sklearn.model_selection import TimeSeriesSplit
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error, mean_absolute_error
 
 import pmdarima as pm
 from pmdarima import auto_arima
 
-import warnings
-warnings.filterwarnings("ignore")
+# import warnings
+# warnings.filterwarnings("ignore")
 
 data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/IBOVESPA/IBOVESPA.csv')
 
 data = data.dropna()
 
-def preprocessing(df_):
-    Train=df_.iloc[0:1900,:] # Cria o dataset de Treino com 1900
-    Test=df_.iloc[1900:,:] #Cria o dataset de teste 738
+""" #Diconario"""
+dicionario_metricas = {
+    'MSE': [],
+    'RMSE': [],
+    'MAE': [],
+    'MAPE':[]
+}
 
+"""# Preprocessamento"""
 
-        ################################################ Encoding ########################
+def preprocessing(train_aux, test_aux):
+    
+    Train = train_aux.astype('float32')
+    normalizer = StandardScaler().fit(train_aux)
+    Train=normalizer.transform(train_aux)
 
-    Train=Train[['Close']]
+    Test = test_aux.astype('float32')
+    Test=normalizer.transform(test_aux)
 
-    Train=Train.values # Transforma tudo em uma matriz, sem os index
-    Train = Train.astype('float32') #converte tudo para float32 e ocupa menos espaço na memória
+    return Train, Test
 
-    Test=Test[['Close']]
-    Test=Test.values
-    Test = Test.astype('float32')
-
-    Train = Train.astype('float32')
-    normalizer = StandardScaler().fit(Train)
-    Train=normalizer.transform(Train)
-
-    Test = Test.astype('float32')
-    Test=normalizer.transform(Test)
-
-    return Train.reshape(-1), Test.reshape(-1)
-
-Train, Test = preprocessing(data)
-
-model = auto_arima(Train,
+def resultado(x_train,x_test,y_train,y_test):
+    y_train = y_train.ravel()
+    y_test = y_test.ravel()
+    
+    model = auto_arima(Train,
                     start_p=0,
                     start_q=0,
                     d=0,
@@ -59,13 +57,50 @@ model = auto_arima(Train,
                     error_action='ignore',suppress_warnings=True,
                     stepwise=True)
 
-model.fit(Train)
+    model.fit(y_train)
+    
+    prediction_arima_final, conf_int = model.predict(n_periods=len(x_test), return_conf_int=True)
 
-prediction = model.predict_in_sample()
+    dicionario_metricas['MSE'].append(mean_squared_error(y_test, prediction_arima_final, squared=True))
+    dicionario_metricas['MAE'].append(mean_absolute_error(y_test, prediction_arima_final))
+    dicionario_metricas['MAPE'].append(mean_absolute_percentage_error(y_test, prediction_arima_final))
+    dicionario_metricas['RMSE'].append(mean_squared_error(y_test, prediction_arima_final, squared=False))
 
-prediction_arima_final, conf_int = model.predict(n_periods=816, return_conf_int=True)
 
-print("MSE: ", mean_squared_error(Test, prediction_arima_final, squared=True))
-print("RMSE: ", mean_squared_error(Test, prediction_arima_final, squared=False))
-print("MAPE: ",mean_absolute_percentage_error(Test, prediction_arima_final))
-print("MAE: ", mean_absolute_error(Test, prediction_arima_final))
+X_Train = np.array([x for x in range(1900)])
+
+X_Test = np.array([x for x in range(1900,2716)])
+
+tscv = TimeSeriesSplit(n_splits=29)
+
+count = 0
+
+for train_index, test_index in tscv.split(X_Test):
+  X_Train_aux = []
+  train_set, test_set = X_Test[train_index], X_Test[test_index]
+
+  if count == 0:
+    Train,Test = preprocessing((np.array(data.loc[:, 'Close'][0:1900])).reshape(-1, 1),(np.array(data.loc[:, 'Close'][1900:])).reshape(-1, 1)) # Realiza a normalizacao
+    test_total = len(train_set) + len(test_set)
+
+    resultado(X_Train.reshape(-1,1), train_set.reshape(-1,1), Train, Test[:len(train_set)])
+
+    X_Train_aux = np.concatenate((X_Train, train_set), axis=0)
+
+    Train,Test = preprocessing((np.array(data.loc[:, 'Close'][0:len(X_Train_aux)])).reshape(-1, 1),(np.array(data.loc[:, 'Close'][len(X_Train_aux):])).reshape(-1, 1)) # Realiza o pré-processamento
+    
+    resultado(X_Train_aux.reshape(-1,1), test_set.reshape(-1,1), Train, Test[:len(test_set)])
+  else:
+    X_Train_aux = np.concatenate((X_Train, train_set), axis=0)
+
+    Train,Test = preprocessing((np.array(data.loc[:, 'Close'][0:len(X_Train_aux)])).reshape(-1, 1),(np.array(data.loc[:, 'Close'][len(X_Train_aux):])).reshape(-1, 1)) # Realiza o pré-processamento
+    
+    resultado(X_Train_aux.reshape(-1,1), test_set.reshape(-1,1), Train, Test[:len(test_set)])
+  
+  count += 1
+
+print(f"Media do MSE: {statistics.mean(dicionario_metricas['MSE'])}")
+print(dicionario_metricas['MSE'])
+print(f"Media do RMSE: {statistics.mean(dicionario_metricas['RMSE'])}")
+print(f"Media do MAE: {statistics.mean(dicionario_metricas['MAE'])}")
+print(f"Media do MAPE: {statistics.mean(dicionario_metricas['MAPE'])}")
