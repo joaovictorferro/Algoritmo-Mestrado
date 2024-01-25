@@ -11,8 +11,8 @@ from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error, 
 from sklearn.model_selection import TimeSeriesSplit
 
 from sklearn.preprocessing import StandardScaler
-# import warnings
-# warnings.filterwarnings("ignore")
+import warnings
+warnings.filterwarnings("ignore")
 
 """# Leitura Database"""
 data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/IBOVESPA/IBOVESPA.csv')
@@ -54,10 +54,10 @@ def resultado(x_train,x_test,y_train,y_test):
 def decomposition_sinal(signal):
 
   ceemdan = CEEMDAN(trials = 100, epsilon = 0.005, ext_EMD=None, parallel = True)
-#   ceemdan(signal)
-#   imfs,res = ceemdan.get_imfs_and_residue()
+  ceemdan(signal)
+  imfs,res = ceemdan.get_imfs_and_residue()
 
-#   return np.vstack((imfs, res))
+  return np.vstack((imfs, res))
 
 def decomposition_final(x_train,x_test,y_train,y_test):
     y_train = y_train.ravel()
@@ -90,40 +90,40 @@ def decomposition_final(x_train,x_test,y_train,y_test):
 """# Main"""
 
 #Base dos 70% para treino
+if __name__ == '__main__':
+    X_Train = np.array([x for x in range(1900)])
 
-X_Train = np.array([x for x in range(1900)])
+    X_Test = np.array([x for x in range(1900,2716)])
 
-X_Test = np.array([x for x in range(1900,2716)])
+    tscv = TimeSeriesSplit(n_splits=29)
 
-tscv = TimeSeriesSplit(n_splits=29)
+    count = 0
 
-count = 0
+    for train_index, test_index in tscv.split(X_Test):
+        X_Train_aux = []
+        train_set, test_set = X_Test[train_index], X_Test[test_index]
 
-for train_index, test_index in tscv.split(X_Test):
-    X_Train_aux = []
-    train_set, test_set = X_Test[train_index], X_Test[test_index]
+        if count == 0:
+            Train,Test = preprocessing((np.array(data.loc[:, 'Close'][0:1900])).reshape(-1, 1),(np.array(data.loc[:, 'Close'][1900:])).reshape(-1, 1)) # Realiza a normalizacao
 
-    if count == 0:
-        Train,Test = preprocessing((np.array(data.loc[:, 'Close'][0:1900])).reshape(-1, 1),(np.array(data.loc[:, 'Close'][1900:])).reshape(-1, 1)) # Realiza a normalizacao
+            decomposition_final(X_Train.reshape(-1,1), train_set.reshape(-1,1), Train, Test[:len(train_set)])
 
-        decomposition_final(X_Train.reshape(-1,1), train_set.reshape(-1,1), Train, Test[:len(train_set)])
+            X_Train_aux = np.concatenate((X_Train, train_set), axis=0)
 
-        X_Train_aux = np.concatenate((X_Train, train_set), axis=0)
+            Train,Test = preprocessing((np.array(data.loc[:, 'Close'][0:len(X_Train_aux)])).reshape(-1, 1),(np.array(data.loc[:, 'Close'][len(X_Train_aux):])).reshape(-1, 1)) # Realiza o pré-processamento
+        
+            decomposition_final(X_Train_aux.reshape(-1,1), test_set.reshape(-1,1), Train, Test[:len(test_set)])
+        else:
+            X_Train_aux = np.concatenate((X_Train, train_set), axis=0)
 
-        Train,Test = preprocessing((np.array(data.loc[:, 'Close'][0:len(X_Train_aux)])).reshape(-1, 1),(np.array(data.loc[:, 'Close'][len(X_Train_aux):])).reshape(-1, 1)) # Realiza o pré-processamento
+            Train,Test = preprocessing((np.array(data.loc[:, 'Close'][0:len(X_Train_aux)])).reshape(-1, 1),(np.array(data.loc[:, 'Close'][len(X_Train_aux):])).reshape(-1, 1)) # Realiza o pré-processamento
+        
+            decomposition_final(X_Train_aux.reshape(-1,1), test_set.reshape(-1,1), Train, Test[:len(test_set)])
     
-        decomposition_final(X_Train_aux.reshape(-1,1), test_set.reshape(-1,1), Train, Test[:len(test_set)])
-    else:
-        X_Train_aux = np.concatenate((X_Train, train_set), axis=0)
+        count += 1
 
-        Train,Test = preprocessing((np.array(data.loc[:, 'Close'][0:len(X_Train_aux)])).reshape(-1, 1),(np.array(data.loc[:, 'Close'][len(X_Train_aux):])).reshape(-1, 1)) # Realiza o pré-processamento
-    
-        decomposition_final(X_Train_aux.reshape(-1,1), test_set.reshape(-1,1), Train, Test[:len(test_set)])
-  
-    count += 1
-
-print(f"Media do MSE: {statistics.mean(dicionario_metricas['MSE'])}")
-print(dicionario_metricas['MSE'])
-print(f"Media do RMSE: {statistics.mean(dicionario_metricas['RMSE'])}")
-print(f"Media do MAE: {statistics.mean(dicionario_metricas['MAE'])}")
-print(f"Media do MAPE: {statistics.mean(dicionario_metricas['MAPE'])}")
+    print(f"Media do MSE: {statistics.mean(dicionario_metricas['MSE'])}")
+    print(dicionario_metricas['MSE'])
+    print(f"Media do RMSE: {statistics.mean(dicionario_metricas['RMSE'])}")
+    print(f"Media do MAE: {statistics.mean(dicionario_metricas['MAE'])}")
+    print(f"Media do MAPE: {statistics.mean(dicionario_metricas['MAPE'])}")
