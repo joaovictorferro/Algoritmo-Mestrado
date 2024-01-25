@@ -9,7 +9,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error
 import warnings
 from statistics import mean
-from sklearn.model_selection import KFold
+from sklearn.model_selection import TimeSeriesSplit
 from sklearn.neural_network import MLPRegressor
 
 warnings.filterwarnings('ignore')
@@ -25,7 +25,9 @@ MUTATION_RATE = 75
 dict_activation = {0: 'relu', 1: 'tanh', 2: 'logistic'}
 dict_learning_rate = {0:'constant', 1:'invscaling', 2:'adaptive'}
 
-df = pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/IBOVESPA/DataSet_IBOVESPA.csv')
+df = pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/IBOVESPA/IBOVESPA.csv')
+
+df = df.dropna()
 
 """# Class"""
 
@@ -144,11 +146,11 @@ def score(population_test):
           max_iter=round(max_iter)
       )
 
-      kfold = KFold(n_splits=5)
+      tscv = TimeSeriesSplit(n_splits=5)
       
       array_MSE = []
       
-      for train_index, test_index in kfold.split(X_train):
+      for train_index, test_index in tscv.split(X_train):
         x_train, x_test = X_train[train_index], X_train[test_index]
         y_train, y_test = Y_train[train_index], Y_train[test_index]
         
@@ -186,10 +188,8 @@ def init_population():
     POPULATION.append(Chromosome(subject))
 
 def preprocessing(df_):
-    Train=df_.iloc[0:1700,:] # Cria o dataset de Treino com 1700
-    Test=df_.iloc[1700:,:] #Cria o dataset de teste 738
-    Train=Train.fillna(Train.mean()) # Completa o dataset onde estiver vazio com a média do dataset de Treino
-    Test=Test.fillna(Test.mean()) # Completa o dataset onde estiver vazio com a média do dataset de Test
+    Train=df_.iloc[0:1900,:] # Cria o dataset de Treino
+    Test=df_.iloc[1900:,:] #Cria o dataset de Teste
 
         ################################################ Encoding ########################
 

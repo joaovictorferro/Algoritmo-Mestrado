@@ -1,69 +1,100 @@
 # -*- coding: utf-8 -*-
-
 import sys
 sys.version
 #Import Libraries
+import statistics
 import pandas as pd
 import numpy as np
-
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error, mean_absolute_error
+from sklearn.model_selection import TimeSeriesSplit
 
 from sklearn.preprocessing import StandardScaler
 
-import warnings
-warnings.filterwarnings("ignore")
+# import warnings
+# warnings.filterwarnings("ignore")
 
 """# Leitura Database"""
-data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/IBOVESPA/DataSet_IBOVESPA.csv')
+data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/IBOVESPA/IBOVESPA.csv')
+
+data = data.dropna()
+
+""" #Diconario"""
+dicionario_metricas = {
+    'MSE': [],
+    'RMSE': [],
+    'MAE': [],
+    'MAPE':[]
+}
 
 """# Preprocessamento"""
 
-def preprocessing(df_):
-    Train=df_.iloc[0:1700,:] # Cria o dataset de Treino com 1700
-    Test=df_.iloc[1700:,:] #Cria o dataset de teste 738
-    Train=Train.fillna(Train.mean()) # Completa o dataset onde estiver vazio com a média do dataset de Treino
-    Test=Test.fillna(Test.mean()) # Completa o dataset onde estiver vazio com a média do dataset de Test
+def preprocessing(train_aux, test_aux):
+    
+    Train = train_aux.astype('float32')
+    normalizer = StandardScaler().fit(train_aux)
+    Train=normalizer.transform(train_aux)
 
-    # print(Train)
-
-        ################################################ Encoding ########################
-
-    Train=Train[['Close']]
-
-    Train=Train.values # Transforma tudo em uma matriz, sem os index
-    Train = Train.astype('float32') #converte tudo para float32 e ocupa menos espaço na memória
-
-    Test=Test[['Close']]
-    Test=Test.values
-    Test = Test.astype('float32')
-
-    Train = Train.astype('float32')
-    normalizer = StandardScaler().fit(Train)
-    Train=normalizer.transform(Train)
-
-    Test = Test.astype('float32')
-    Test=normalizer.transform(Test)
+    Test = test_aux.astype('float32')
+    Test=normalizer.transform(test_aux)
 
     return Train, Test
 
+
+def resultado(x_train,x_test,y_train,y_test):
+    y_train = y_train.ravel()
+    y_test = y_test.ravel()
+    
+    CART =  DecisionTreeRegressor(criterion=  'squared_error', max_depth =None, max_features='sqrt', 
+                                min_samples_leaf= 64, min_samples_split= 0.01,splitter='best')
+
+    CART.fit(x_train, y_train)
+
+    prediction = CART.predict(x_test)
+
+    dicionario_metricas['MSE'].append(mean_squared_error(y_test, prediction, squared=True))
+    dicionario_metricas['MAE'].append(mean_absolute_error(y_test, prediction))
+    dicionario_metricas['MAPE'].append(mean_absolute_percentage_error(y_test, prediction))
+    dicionario_metricas['RMSE'].append(mean_squared_error(y_test, prediction, squared=False))
+
 """# Main"""
 
-Train,Test=preprocessing(data) # Realiza o pré-processamento
+#Base dos 70% para treino
 
-X_Train = np.array([x for x in range(len(Train))])
-Train = Train.ravel()
+X_Train = np.array([x for x in range(1900)])
 
-X_Test = np.array([x for x in range(1700,2428)])
-# Test = Test.ravel()
+X_Test = np.array([x for x in range(1900,2716)])
 
-CART = DecisionTreeRegressor(criterion= 'absolute_error', max_depth = None, max_features='log2', 
-                                min_samples_leaf= 37, min_samples_split= 0.3,splitter='best').fit(X_Train.reshape(-1,1), Train)
+tscv = TimeSeriesSplit(n_splits=29)
 
+count = 0
 
-prediction = CART.predict(X_Test.reshape(-1,1))
+for train_index, test_index in tscv.split(X_Test):
+  X_Train_aux = []
+  train_set, test_set = X_Test[train_index], X_Test[test_index]
 
-print("MSE: ", mean_squared_error(Test, prediction, squared=True))
-print("RMSE: ", mean_squared_error(Test, prediction, squared=False))
-print("MAPE: ",mean_absolute_percentage_error(Test, prediction))
-print("MAE: ", mean_absolute_error(Test, prediction))
+  if count == 0:
+    Train,Test = preprocessing((np.array(data.loc[:, 'Close'][0:1900])).reshape(-1, 1),(np.array(data.loc[:, 'Close'][1900:])).reshape(-1, 1)) # Realiza a normalizacao
+    test_total = len(train_set) + len(test_set)
+
+    resultado(X_Train.reshape(-1,1), train_set.reshape(-1,1), Train, Test[:len(train_set)])
+
+    X_Train_aux = np.concatenate((X_Train, train_set), axis=0)
+
+    Train,Test = preprocessing((np.array(data.loc[:, 'Close'][0:len(X_Train_aux)])).reshape(-1, 1),(np.array(data.loc[:, 'Close'][len(X_Train_aux):])).reshape(-1, 1)) # Realiza o pré-processamento
+    
+    resultado(X_Train_aux.reshape(-1,1), test_set.reshape(-1,1), Train, Test[:len(test_set)])
+  else:
+    X_Train_aux = np.concatenate((X_Train, train_set), axis=0)
+
+    Train,Test = preprocessing((np.array(data.loc[:, 'Close'][0:len(X_Train_aux)])).reshape(-1, 1),(np.array(data.loc[:, 'Close'][len(X_Train_aux):])).reshape(-1, 1)) # Realiza o pré-processamento
+    
+    resultado(X_Train_aux.reshape(-1,1), test_set.reshape(-1,1), Train, Test[:len(test_set)])
+  
+  count += 1
+
+print(f"Media do MSE: {statistics.mean(dicionario_metricas['MSE'])}")
+print(dicionario_metricas['MSE'])
+print(f"Media do RMSE: {statistics.mean(dicionario_metricas['RMSE'])}")
+print(f"Media do MAE: {statistics.mean(dicionario_metricas['MAE'])}")
+print(f"Media do MAPE: {statistics.mean(dicionario_metricas['MAPE'])}")

@@ -75,7 +75,6 @@ for train_index, test_index in tscv.split(X_Test):
 
   if count == 0:
     Train,Test = preprocessing((np.array(data.loc[:, 'Close'][0:1900])).reshape(-1, 1),(np.array(data.loc[:, 'Close'][1900:])).reshape(-1, 1)) # Realiza a normalizacao
-    test_total = len(train_set) + len(test_set)
 
     resultado(X_Train.reshape(-1,1), train_set.reshape(-1,1), Train, Test[:len(train_set)])
 
