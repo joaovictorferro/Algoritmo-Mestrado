@@ -9,11 +9,10 @@ from PyEMD import CEEMDAN
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error, mean_absolute_error
 from sklearn.model_selection import TimeSeriesSplit
+from sklearn.preprocessing import MinMaxScaler
 
-from sklearn.preprocessing import StandardScaler
-
-# import warnings
-# warnings.filterwarnings("ignore")
+import warnings
+warnings.filterwarnings("ignore")
 
 """# Leitura Database"""
 data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/IBOVESPA/IBOVESPA.csv')
@@ -32,20 +31,19 @@ dicionario_metricas = {
 
 def preprocessing(train_aux, test_aux):
     
-    Train = train_aux.astype('float32')
-    normalizer = StandardScaler().fit(train_aux)
-    Train=normalizer.transform(train_aux)
+  Train = train_aux.astype('float32')
+  normalizer = MinMaxScaler(feature_range=(0.1, 0.9)).fit(train_aux)
+  Train=normalizer.transform(train_aux)
 
-    Test = test_aux.astype('float32')
-    Test=normalizer.transform(test_aux)
+  Test = test_aux.astype('float32')
+  Test=normalizer.transform(test_aux)
 
-    return Train, Test
+  return Train, Test
 
 
 def resultado(x_train,x_test,y_train,y_test):
 
-    CART = DecisionTreeRegressor(criterion= 'squared_error', max_depth =None,max_features='sqrt',
-                                min_samples_leaf= 4, min_samples_split= 2,splitter='best')
+    CART = DecisionTreeRegressor(criterion= 'squared_error', max_depth =None,max_features='sqrt',min_samples_leaf= 4, min_samples_split= 2,splitter='best')
 
     CART.fit(x_train, y_train)
 
@@ -54,8 +52,8 @@ def resultado(x_train,x_test,y_train,y_test):
     return prediction
 
 def decomposition(signal):
-
-  ceemdan = CEEMDAN(trials = 100, epsilon = 0.005, ext_EMD=None, parallel = True)
+  ceemdan = CEEMDAN(trials = 200, epsilon = 0.005)
+  ceemdan.noise_seed(42)
   ceemdan(signal)
   imfs,res = ceemdan.get_imfs_and_residue()
 

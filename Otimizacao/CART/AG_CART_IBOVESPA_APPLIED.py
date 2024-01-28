@@ -8,11 +8,10 @@ import numpy as np
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error, mean_absolute_error
 from sklearn.model_selection import TimeSeriesSplit
+from sklearn.preprocessing import MinMaxScaler
 
-from sklearn.preprocessing import StandardScaler
-
-# import warnings
-# warnings.filterwarnings("ignore")
+import warnings
+warnings.filterwarnings("ignore")
 
 """# Leitura Database"""
 data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/IBOVESPA/IBOVESPA.csv')
@@ -32,7 +31,7 @@ dicionario_metricas = {
 def preprocessing(train_aux, test_aux):
     
     Train = train_aux.astype('float32')
-    normalizer = StandardScaler().fit(train_aux)
+    normalizer = MinMaxScaler(feature_range=(0.1, 0.9)).fit(train_aux)
     Train=normalizer.transform(train_aux)
 
     Test = test_aux.astype('float32')
@@ -45,8 +44,8 @@ def resultado(x_train,x_test,y_train,y_test):
     y_train = y_train.ravel()
     y_test = y_test.ravel()
     
-    CART =  DecisionTreeRegressor(criterion=  'squared_error', max_depth =None, max_features='sqrt', 
-                                min_samples_leaf= 64, min_samples_split= 0.01,splitter='best')
+    CART = DecisionTreeRegressor(criterion= 'friedman_mse', max_depth =None,max_features='log2',
+                                min_samples_leaf= 60, min_samples_split= 2,splitter='best')
 
     CART.fit(x_train, y_train)
 
@@ -75,7 +74,6 @@ for train_index, test_index in tscv.split(X_Test):
 
   if count == 0:
     Train,Test = preprocessing((np.array(data.loc[:, 'Close'][0:1900])).reshape(-1, 1),(np.array(data.loc[:, 'Close'][1900:])).reshape(-1, 1)) # Realiza a normalizacao
-    test_total = len(train_set) + len(test_set)
 
     resultado(X_Train.reshape(-1,1), train_set.reshape(-1,1), Train, Test[:len(train_set)])
 

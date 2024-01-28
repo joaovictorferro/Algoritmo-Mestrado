@@ -5,20 +5,20 @@ import numpy as np
 import random
 import pandas as pd
 import math
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error
 from statistics import mean
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.tree import DecisionTreeRegressor
 
-# import warnings
-# warnings.filterwarnings('ignore')
+import warnings
+warnings.filterwarnings('ignore')
 
 """# Global Variables"""
 
 POPULATION = []
 NEW_POPULATION = []
-LENGTH_POPULATION = 10
+LENGTH_POPULATION = 100
 CROSSOVER_RATE = 90
 MUTATION_RATE = 75
 
@@ -194,7 +194,7 @@ def preprocessing(df_):
     Test = Test.astype('float32')
 
     Train = Train.astype('float32')
-    normalizer = StandardScaler().fit(Train)
+    normalizer = MinMaxScaler(feature_range=(0.1, 0.9)).fit(Train)
     Train=normalizer.transform(Train)
 
     Test = Test.astype('float32')

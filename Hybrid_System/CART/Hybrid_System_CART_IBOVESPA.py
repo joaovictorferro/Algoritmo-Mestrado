@@ -6,15 +6,13 @@ import statistics
 import pandas as pd
 import numpy as np
 import pmdarima as pm
-from pmdarima import auto_arima
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error, mean_absolute_error
 from sklearn.model_selection import TimeSeriesSplit
+from sklearn.preprocessing import MinMaxScaler
 
-from sklearn.preprocessing import StandardScaler
-
-# import warnings
-# warnings.filterwarnings("ignore")
+import warnings
+warnings.filterwarnings("ignore")
 
 """# Leitura Database"""
 data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/IBOVESPA/IBOVESPA.csv')
@@ -34,7 +32,7 @@ dicionario_metricas = {
 def preprocessing(train_aux, test_aux):
     
     Train = train_aux.astype('float32')
-    normalizer = StandardScaler().fit(train_aux)
+    normalizer = MinMaxScaler(feature_range=(0.1, 0.9)).fit(train_aux)
     Train=normalizer.transform(train_aux)
 
     Test = test_aux.astype('float32')
@@ -47,22 +45,7 @@ def resultado(x_train,x_test,y_train,y_test):
     y_train = y_train.ravel()
     y_test = y_test.ravel()
     
-    model = auto_arima(Train,
-                    start_p=0,
-                    start_q=0,
-                    d=0,
-                    max_p=6,
-                    max_q=6,
-                    max_d=2,
-                    start_P=0,
-                    start_Q=0,
-                    D=0,
-                    max_P=2, max_D=1, max_Q=2, max_order=5,
-                    m=12,
-                    seasonal=False,
-                    trace=True,
-                    error_action='ignore',suppress_warnings=True,
-                    stepwise=True)
+    model = pm.ARIMA(order=(1, 0, 1))
 
     model.fit(y_train)
 
@@ -70,8 +53,7 @@ def resultado(x_train,x_test,y_train,y_test):
 
     residuo = y_train - prediction
 
-    CART = DecisionTreeRegressor(criterion= 'absolute_error', max_depth =10,max_features=None,
-                                min_samples_leaf= 2, min_samples_split= 10,splitter='best').fit(x_train, residuo)
+    CART = DecisionTreeRegressor(criterion= 'squared_error', max_depth =None,max_features='sqrt',min_samples_leaf= 4, min_samples_split= 2,splitter='best').fit(x_train, residuo)
 
     # Faça previsões
     prediction_arima_final, conf_int = model.predict(n_periods=len(x_test), return_conf_int=True)
