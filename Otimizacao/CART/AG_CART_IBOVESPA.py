@@ -84,7 +84,7 @@ def mutation(population_):
         elif i == 4:
          array_2[i] = random.randint(1,100)
         elif i == 5:
-            array_2[i] = random.uniform(0.01, 1.0)
+            array_2[i] = random.randint(2, 20)
     
     array.append(Chromosome(array_2))
 
@@ -173,7 +173,7 @@ def init_population():
     subject.append(random.randint(1,100))
     subject.append(random.randint(0,1))
     subject.append(random.randint(1,100))
-    subject.append(random.uniform(0.01, 1.0))
+    subject.append(random.randint(2, 20))
     
     
     POPULATION.append(Chromosome(subject))

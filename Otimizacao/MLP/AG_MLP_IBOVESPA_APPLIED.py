@@ -8,11 +8,10 @@ import numpy as np
 from sklearn.neural_network import MLPRegressor
 from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error, mean_absolute_error
 from sklearn.model_selection import TimeSeriesSplit
+from sklearn.preprocessing import MinMaxScaler
 
-from sklearn.preprocessing import StandardScaler
-
-# import warnings
-# warnings.filterwarnings("ignore")
+import warnings
+warnings.filterwarnings("ignore")
 
 """# Leitura Database"""
 data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/IBOVESPA/IBOVESPA.csv')
@@ -32,7 +31,7 @@ dicionario_metricas = {
 def preprocessing(train_aux, test_aux):
     
     Train = train_aux.astype('float32')
-    normalizer = StandardScaler().fit(train_aux)
+    normalizer = MinMaxScaler(feature_range=(0.1, 0.9)).fit(train_aux)
     Train=normalizer.transform(train_aux)
 
     Test = test_aux.astype('float32')
@@ -44,8 +43,8 @@ def resultado(x_train,x_test,y_train,y_test):
     y_train = y_train.ravel()
     y_test = y_test.ravel()
     
-    mlp = MLPRegressor(activation= 'tanh', alpha=0.01,batch_size= 41, hidden_layer_sizes= (234,85,217), 
-                          learning_rate = 'invscaling',max_iter= 152, solver= 'adam')
+    mlp = MLPRegressor(activation= 'tanh', alpha=0.2,batch_size= 100, hidden_layer_sizes= (198,230,59), 
+                          learning_rate = 'constant',max_iter= 272, solver= 'adam')
 
     mlp.fit(x_train, y_train)
 

@@ -44,8 +44,8 @@ def resultado(x_train,x_test,y_train,y_test):
     y_train = y_train.ravel()
     y_test = y_test.ravel()
     
-    CART = DecisionTreeRegressor(criterion= 'friedman_mse', max_depth =None,max_features='log2',
-                                min_samples_leaf= 60, min_samples_split= 2,splitter='best')
+    CART = DecisionTreeRegressor(criterion= 'squared_error', max_depth =None,max_features='sqrt',
+                                min_samples_leaf= 56, min_samples_split= 6,splitter='best')
 
     CART.fit(x_train, y_train)
 
