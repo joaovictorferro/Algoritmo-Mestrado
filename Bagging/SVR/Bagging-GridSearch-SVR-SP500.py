@@ -5,16 +5,16 @@ sys.version
 #Import Libraries
 import pandas as pd
 import numpy as np
-
 from sklearn.svm import SVR
 from sklearn.ensemble import BaggingRegressor
 from sklearn.model_selection import TimeSeriesSplit, GridSearchCV
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 
 import warnings
 warnings.filterwarnings("ignore")
 
 """# Leitura Database"""
+
 data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/S%26P500/%5ESPX.csv')
 
 data = data.dropna()
@@ -24,7 +24,7 @@ data = data.dropna()
 def preprocessing(df_):
     Train=df_.iloc[0:1900,:] # Cria o dataset de Treino
     Test=df_.iloc[1900:,:] #Cria o dataset de teste
-
+    
         ################################################ Encoding ########################
 
     Train=Train[['Close']]
@@ -37,7 +37,7 @@ def preprocessing(df_):
     Test = Test.astype('float32')
 
     Train = Train.astype('float32')
-    normalizer = StandardScaler().fit(Train)
+    normalizer = MinMaxScaler(feature_range=(0.1, 0.9)).fit(Train)
     Train=normalizer.transform(Train)
 
     Test = Test.astype('float32')
@@ -53,7 +53,7 @@ X_Train = np.array([x for x in range(len(Train))])
 Train = Train.ravel()
 
 # Defina o modelo base, neste caso, uma árvore de decisão
-base_model = SVR(C= 0.1, epsilon = 0.5, gamma = 0.1, kernel = 'linear', max_iter= 1000)
+base_model = SVR(C= 0.1, epsilon = 0.1, gamma = 0.1, kernel = 'linear', max_iter=10000)
 
 # Defina o número de estimadores que você deseja testar
 estimator_range = [10, 20, 30, 40, 50,60,70,80,90,100]  # Você pode ajustar essa lista conforme necessário

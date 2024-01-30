@@ -6,18 +6,15 @@ sys.version
 import pandas as pd
 import numpy as np
 
-from sklearn.metrics import r2_score
-
 from sklearn.tree import DecisionTreeRegressor
-
 from sklearn.model_selection import TimeSeriesSplit, GridSearchCV
-
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 
 import warnings
 warnings.filterwarnings("ignore")
 
 """# Leitura Database"""
+
 data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/S%26P500/%5ESPX.csv')
 
 data = data.dropna()
@@ -25,10 +22,11 @@ data = data.dropna()
 """# Preprocessamento"""
 
 def preprocessing(df_):
-    cols=df_.columns
-
-    Train=df_.iloc[0:1900,:] # Cria o dataset de Treino com 1700
+    
+    Train=df_.iloc[0:1900,:] # Cria o dataset de Treino com 1900
     Test=df_.iloc[1900:,:] #Cria o dataset de teste 738
+
+    # print(Train)
 
         ################################################ Encoding ########################
 
@@ -42,7 +40,7 @@ def preprocessing(df_):
     Test = Test.astype('float32')
 
     Train = Train.astype('float32')
-    normalizer = StandardScaler().fit(Train)
+    normalizer = MinMaxScaler(feature_range=(0.1, 0.9)).fit(Train)
     Train=normalizer.transform(Train)
 
     Test = Test.astype('float32')
@@ -54,11 +52,9 @@ def preprocessing(df_):
 
 Train,Test=preprocessing(data) # Realiza o pré-processamento
 
+print(data)
+
 """# GridSearch"""
-
-from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
-from sklearn.metrics import mean_squared_error
-
 X_Train = np.array([x for x in range(len(Train))])
 Train = Train.ravel()
 
@@ -66,7 +62,7 @@ param_grid = {
     'criterion': ['squared_error', 'friedman_mse', 'absolute_error', 'poisson'],
     'splitter': ['best'],
     'max_depth': [None, 10, 20, 30],
-    'max_features': ['auto', 'sqrt', 'log2'],
+    'max_features': ['auto','sqrt', 'log2'],
     'min_samples_split': [2, 5, 10],
     'min_samples_leaf': [1, 2, 4]
 
@@ -83,5 +79,5 @@ tscv = TimeSeriesSplit(n_splits=5)
 grid_search = GridSearchCV(cart, param_grid, cv=tscv, scoring=scoring,n_jobs=-1,verbose=2)
 grid_search.fit(X_Train.reshape(-1, 1),Train)
 
-# Exiba os melhores hiperparâmetros encontrados
+# # Exiba os melhores hiperparâmetros encontrados
 print("Melhores hiperparâmetros:", grid_search.best_params_)

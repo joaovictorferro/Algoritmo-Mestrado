@@ -4,8 +4,6 @@ import sys
 sys.version
 import pandas as pd
 import numpy as np
-
-
 from sklearn.ensemble import BaggingRegressor
 from sklearn.neural_network import MLPRegressor
 from sklearn.preprocessing import MinMaxScaler
@@ -54,7 +52,7 @@ X_Train = np.array([x for x in range(len(Train))])
 Train = Train.ravel()
 
 # Defina o modelo base, neste caso, uma árvore de decisão
-base_model = MLPRegressor(activation= 'tanh', alpha=0.001,batch_size= 64, hidden_layer_sizes= (100,50,25), learning_rate = 'adaptive',max_iter= 200, solver= 'adam')
+base_model = MLPRegressor(activation= 'tanh', alpha=0.01,batch_size= 32, hidden_layer_sizes= (100,100), learning_rate = 'constant',max_iter= 400, solver= 'adam')
 
 # Defina o número de estimadores que você deseja testar
 estimator_range = [10, 20, 30, 40, 50,60,70,80,90,100]  # Você pode ajustar essa lista conforme necessário

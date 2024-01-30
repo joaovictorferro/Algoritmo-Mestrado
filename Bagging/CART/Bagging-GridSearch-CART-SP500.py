@@ -2,17 +2,20 @@
 
 import sys
 sys.version
+#Import Libraries
 import pandas as pd
 import numpy as np
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.model_selection import TimeSeriesSplit, GridSearchCV
+
 from sklearn.ensemble import BaggingRegressor
-from sklearn.preprocessing import StandardScaler
+from sklearn.tree import DecisionTreeRegressor
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.model_selection import TimeSeriesSplit, GridSearchCV
 
 import warnings
 warnings.filterwarnings("ignore")
 
 """# Leitura Database"""
+
 data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/S%26P500/%5ESPX.csv')
 
 data = data.dropna()
@@ -34,7 +37,7 @@ def preprocessing(df_):
     Test = Test.astype('float32')
 
     Train = Train.astype('float32')
-    normalizer = StandardScaler().fit(Train)
+    normalizer = MinMaxScaler(feature_range=(0.1, 0.9)).fit(Train)
     Train=normalizer.transform(Train)
 
     Test = Test.astype('float32')
@@ -46,12 +49,11 @@ def preprocessing(df_):
 
 Train,Test=preprocessing(data) # Realiza o pré-processamento
 
-"""# GridSearch"""
 
 X_Train = np.array([x for x in range(len(Train))])
 Train = Train.ravel()
 
-# Defina o modelo base, nestes caso, uma árvore de decisão
+# Defina o modelo base, neste caso, uma árvore de decisão
 base_model = DecisionTreeRegressor(criterion= 'squared_error', max_depth =None,max_features='sqrt', min_samples_leaf= 1, min_samples_split= 10,splitter='best')
 
 # Defina o número de estimadores que você deseja testar

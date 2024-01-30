@@ -2,13 +2,12 @@
 
 import sys
 sys.version
-#Import Libraries
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import BaggingRegressor
 from sklearn.neural_network import MLPRegressor
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import TimeSeriesSplit, GridSearchCV
-from sklearn.preprocessing import StandardScaler
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -17,12 +16,13 @@ warnings.filterwarnings("ignore")
 data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/S%26P500/%5ESPX.csv')
 
 data = data.dropna()
-
 """# Preprocessamento"""
 
 def preprocessing(df_):
     Train=df_.iloc[0:1900,:] # Cria o dataset de Treino
-    Test=df_.iloc[1900:,:] #Cria o dataset de teste
+    Test=df_.iloc[1900:,:] #Cria o dataset de teste 
+
+    # print(Train)
 
         ################################################ Encoding ########################
 
@@ -36,7 +36,7 @@ def preprocessing(df_):
     Test = Test.astype('float32')
 
     Train = Train.astype('float32')
-    normalizer = StandardScaler().fit(Train)
+    normalizer = MinMaxScaler(feature_range=(0.1, 0.9)).fit(Train)
     Train=normalizer.transform(Train)
 
     Test = Test.astype('float32')
@@ -48,17 +48,11 @@ def preprocessing(df_):
 
 Train,Test=preprocessing(data) # Realiza o pré-processamento
 
-"""# GridSearch"""
-
-from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
-from sklearn.metrics import mean_squared_error
-
 X_Train = np.array([x for x in range(len(Train))])
 Train = Train.ravel()
 
-
 # Defina o modelo base, neste caso, uma árvore de decisão
-base_model = MLPRegressor(activation= 'tanh', alpha=0.0001,batch_size= 32, hidden_layer_sizes= (100,100), learning_rate = 'constant',max_iter= 400, solver= 'adam')
+base_model = MLPRegressor(activation= 'relu', alpha=0.001,batch_size= 128, hidden_layer_sizes= (100,50,25), learning_rate = 'adaptive',max_iter= 400, solver= 'adam')
 
 # Defina o número de estimadores que você deseja testar
 estimator_range = [10, 20, 30, 40, 50,60,70,80,90,100]  # Você pode ajustar essa lista conforme necessário
@@ -70,6 +64,7 @@ param_grid = {
 
 # Use validação cruzada para encontrar o número ideal de estimadores
 tscv = TimeSeriesSplit(n_splits=5)
+
 grid = GridSearchCV(BaggingRegressor(base_model), param_grid, cv=tscv, scoring='neg_mean_squared_error', n_jobs=-1,verbose=2)
 grid.fit(X_Train.reshape(-1,1), Train)
 
@@ -83,4 +78,4 @@ for mean, std, params in zip(means, stds, grid.cv_results_['params']):
 best_estimator = grid.best_estimator_
 best_n_estimators = grid.best_params_['n_estimators']
 
-print(f'O melhor número de estimadores é {best_n_estimators}')
+print(f'O melhor número de estimadores são {best_n_estimators}')

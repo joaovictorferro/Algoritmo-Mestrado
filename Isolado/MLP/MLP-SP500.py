@@ -8,11 +8,10 @@ import numpy as np
 from sklearn.neural_network import MLPRegressor
 from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error, mean_absolute_error
 from sklearn.model_selection import TimeSeriesSplit
+from sklearn.preprocessing import MinMaxScaler
 
-from sklearn.preprocessing import StandardScaler
-
-# import warnings
-# warnings.filterwarnings("ignore")
+import warnings
+warnings.filterwarnings("ignore")
 
 """# Leitura Database"""
 data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/S%26P500/%5ESPX.csv')
@@ -32,7 +31,7 @@ dicionario_metricas = {
 def preprocessing(train_aux, test_aux):
     
     Train = train_aux.astype('float32')
-    normalizer = StandardScaler().fit(train_aux)
+    normalizer = MinMaxScaler(feature_range=(0.1, 0.9)).fit(train_aux)
     Train=normalizer.transform(train_aux)
 
     Test = test_aux.astype('float32')
@@ -44,8 +43,8 @@ def resultado(x_train,x_test,y_train,y_test):
     y_train = y_train.ravel()
     y_test = y_test.ravel()
     
-    mlp = MLPRegressor(activation= 'tanh', alpha=0.0001,batch_size= 32, hidden_layer_sizes= (100,100), 
-                          learning_rate = 'constant',max_iter= 400, solver= 'adam')
+    mlp = MLPRegressor(activation= 'relu', alpha=0.001,batch_size= 128, hidden_layer_sizes= (100,50,25), 
+                          learning_rate = 'adaptive',max_iter= 400, solver= 'adam')
 
     mlp.fit(x_train, y_train)
 
@@ -93,6 +92,7 @@ for train_index, test_index in tscv.split(X_Test):
   count += 1
 
 print(f"Media do MSE: {statistics.mean(dicionario_metricas['MSE'])}")
+print(dicionario_metricas['MSE'])
 print(f"Media do RMSE: {statistics.mean(dicionario_metricas['RMSE'])}")
 print(f"Media do MAE: {statistics.mean(dicionario_metricas['MAE'])}")
 print(f"Media do MAPE: {statistics.mean(dicionario_metricas['MAPE'])}")

@@ -8,8 +8,7 @@ import numpy as np
 from sklearn.svm import SVR
 from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error, mean_absolute_error
 from sklearn.model_selection import TimeSeriesSplit
-
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -32,7 +31,7 @@ dicionario_metricas = {
 def preprocessing(train_aux, test_aux):
     
     Train = train_aux.astype('float32')
-    normalizer = StandardScaler().fit(train_aux)
+    normalizer = MinMaxScaler(feature_range=(0.1, 0.9)).fit(train_aux)
     Train=normalizer.transform(train_aux)
 
     Test = test_aux.astype('float32')
@@ -44,7 +43,7 @@ def resultado(x_train,x_test,y_train,y_test):
     y_train = y_train.ravel()
     y_test = y_test.ravel()
     
-    svr = SVR(C= 0.1, epsilon = 0.5, gamma = 0.1, kernel = 'linear', max_iter= 1000)
+    svr = SVR(C= 0.1, epsilon = 0.1, gamma = 0.1, kernel = 'linear', max_iter= 10000)
 
     svr.fit(x_train, y_train)
 
@@ -92,6 +91,7 @@ for train_index, test_index in tscv.split(X_Test):
   count += 1
 
 print(f"Media do MSE: {statistics.mean(dicionario_metricas['MSE'])}")
+print(dicionario_metricas['MSE'])
 print(f"Media do RMSE: {statistics.mean(dicionario_metricas['RMSE'])}")
 print(f"Media do MAE: {statistics.mean(dicionario_metricas['MAE'])}")
 print(f"Media do MAPE: {statistics.mean(dicionario_metricas['MAPE'])}")

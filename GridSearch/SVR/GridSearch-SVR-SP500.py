@@ -2,13 +2,11 @@
 
 import sys
 sys.version
-#Import Libraries
 import pandas as pd
 import numpy as np
-
 from sklearn.svm import SVR
 from sklearn.model_selection import TimeSeriesSplit, GridSearchCV
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -21,10 +19,9 @@ data = data.dropna()
 """# Preprocessamento"""
 
 def preprocessing(df_):
-    cols=df_.columns
-
     Train=df_.iloc[0:1900,:] # Cria o dataset de Treino com 1700
     Test=df_.iloc[1900:,:] #Cria o dataset de teste 738
+    # print(Train)
 
         ################################################ Encoding ########################
 
@@ -38,7 +35,7 @@ def preprocessing(df_):
     Test = Test.astype('float32')
 
     Train = Train.astype('float32')
-    normalizer = StandardScaler().fit(Train)
+    normalizer = MinMaxScaler(feature_range=(0.1, 0.9)).fit(Train)
     Train=normalizer.transform(Train)
 
     Test = Test.astype('float32')
@@ -52,9 +49,6 @@ Train,Test=preprocessing(data) # Realiza o pré-processamento
 
 """# GridSearch"""
 
-from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
-from sklearn.metrics import mean_squared_error
-
 X_Train = np.array([x for x in range(len(Train))])
 Train = Train.ravel()
 
@@ -63,7 +57,7 @@ param_grid = {
     'C': [0.1, 1, 10],
     'epsilon': [0.1, 0.2, 0.5],
     'gamma': [0.1, 0.2, 0.5],
-    'max_iter': [1000, 10000, 100000]
+    'max_iter': [1000, 10000,100000]
 }
 
 svr = SVR()
@@ -73,8 +67,7 @@ scoring = 'neg_mean_squared_error'
 
 tscv = TimeSeriesSplit(n_splits=5)
 
-# Use GridSearchCV com scoring especificado
-grid_search = GridSearchCV(svr, param_grid, cv=tscv, scoring=scoring,n_jobs=-1,verbose=2)
+grid_search = GridSearchCV(svr, param_grid, cv=tscv, scoring=scoring,n_jobs=-1, verbose=2)
 grid_search.fit(X_Train.reshape(-1, 1),Train)
 
 # Exiba os melhores hiperparâmetros encontrados

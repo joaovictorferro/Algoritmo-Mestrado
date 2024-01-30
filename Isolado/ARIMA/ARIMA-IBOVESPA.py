@@ -4,7 +4,7 @@ import statistics
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error, mean_absolute_error
 from sklearn.preprocessing import MinMaxScaler
-from pmdarima import auto_arima
+from pmdarima import pm
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -38,22 +38,7 @@ def resultado(x_train,x_test,y_train,y_test):
     y_train = y_train.ravel()
     y_test = y_test.ravel()
     
-    model = auto_arima(Train,
-                    start_p=0,
-                    start_q=0,
-                    d=0,
-                    max_p=6,
-                    max_q=6,
-                    max_d=2,
-                    start_P=0,
-                    start_Q=0,
-                    D=0,
-                    max_P=2, max_D=1, max_Q=2, max_order=5,
-                    m=12,
-                    seasonal=False,
-                    trace=True,
-                    error_action='ignore',suppress_warnings=True,
-                    stepwise=True)
+    model = pm.ARIMA(order=(1, 0, 1))
 
     model.fit(y_train)
     
