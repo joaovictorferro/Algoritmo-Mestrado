@@ -43,11 +43,11 @@ def preprocessing(train_aux, test_aux):
 
 def resultado(x_train,x_test,y_train,y_test):
 
-    CART = SVR(C= 0.1, epsilon = 0.5, gamma = 0.1, kernel = 'linear', max_iter= 1000)
+    svr = SVR(C= 0.1, epsilon = 0.5, gamma = 0.1, kernel = 'linear', max_iter= 1000)
 
-    CART.fit(x_train, y_train)
+    svr.fit(x_train, y_train)
 
-    prediction = CART.predict(x_test)
+    prediction = svr.predict(x_test)
     
     return prediction
 

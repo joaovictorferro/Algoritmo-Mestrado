@@ -8,7 +8,7 @@ import random
 from sklearn.metrics import mean_squared_error
 import warnings
 from statistics import mean
-from sklearn.model_selection import KFold
+from sklearn.model_selection import TimeSeriesSplit
 from sklearn.svm import SVR
 import gc
 
@@ -122,11 +122,11 @@ def score(population_test, X_train, Y_train):
                   kernel = dict_linear[linear], 
                   max_iter = max_iter)
           
-    kfold = KFold(n_splits=5)
+    tscv = TimeSeriesSplit(n_splits=5)
       
     array_MSE = []
     
-    for train_index, test_index in kfold.split(X_train):
+    for train_index, test_index in tscv.split(X_train):
       x_train, x_test = X_train[train_index], X_train[test_index]
       y_train, y_test = Y_train[train_index], Y_train[test_index]
       
@@ -158,10 +158,7 @@ def init_population():
   return population
   
 
-def start(df):
-
-  X_train = np.array([x for x in range(len(df))])
-  Y_train = df.ravel()
+def start(X_train, Y_train):
 
   POPULATION = init_population()
 

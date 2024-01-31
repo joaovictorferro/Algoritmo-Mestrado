@@ -7,7 +7,7 @@ import random
 from sklearn.metrics import mean_squared_error
 import warnings
 from statistics import mean
-from sklearn.model_selection import KFold
+from sklearn.model_selection import TimeSeriesSplit
 from sklearn.neural_network import MLPRegressor
 import gc
 
@@ -118,54 +118,53 @@ def crossOver(population):
 def score(population_test, X_train, Y_train):
   
   for ind in population_test:
-      quantidade_camada_oculta,hidden_layer_sizes_1,hidden_layer_sizes_2, hidden_layer_sizes_3, activation, learning_rate,alpha, batch_size, max_iter = ind.schema
+    quantidade_camada_oculta,hidden_layer_sizes_1,hidden_layer_sizes_2, hidden_layer_sizes_3, activation, learning_rate,alpha, batch_size, max_iter = ind.schema
   
-      if quantidade_camada_oculta == 2:
+    if quantidade_camada_oculta == 2:
 
-          model = MLPRegressor(
-          hidden_layer_sizes=(hidden_layer_sizes_1,hidden_layer_sizes_2),
-          activation=dict_activation[activation],
-          solver='adam',
-          learning_rate=dict_learning_rate[learning_rate],
-          alpha=alpha,
-          batch_size=batch_size,
-          max_iter=max_iter
+      model = MLPRegressor(
+        hidden_layer_sizes=(hidden_layer_sizes_1,hidden_layer_sizes_2),
+        activation=dict_activation[activation],
+        solver='adam',
+        learning_rate=dict_learning_rate[learning_rate],
+        alpha=alpha,
+        batch_size=batch_size,
+        max_iter=max_iter
       )
-      else:
-          model = MLPRegressor(
-          hidden_layer_sizes=(hidden_layer_sizes_1,hidden_layer_sizes_2,hidden_layer_sizes_3),
-          activation=dict_activation[round(activation)],
-          solver='adam',
-          learning_rate=dict_learning_rate[round(learning_rate)],
-          alpha=alpha,
-          batch_size=round(batch_size),
-          max_iter=round(max_iter)
+    else:
+      model = MLPRegressor(
+        hidden_layer_sizes=(hidden_layer_sizes_1,hidden_layer_sizes_2,hidden_layer_sizes_3),
+        activation=dict_activation[round(activation)],
+        solver='adam',
+        learning_rate=dict_learning_rate[round(learning_rate)],
+        alpha=alpha,
+        batch_size=round(batch_size),
+        max_iter=round(max_iter)
       )
 
-      kfold = KFold(n_splits=5)
+    tscv = TimeSeriesSplit(n_splits=5)
       
-      array_MSE = []
+    array_MSE = []
       
-      for train_index, test_index in kfold.split(X_train):
-        x_train, x_test = X_train[train_index], X_train[test_index]
-        y_train, y_test = Y_train[train_index], Y_train[test_index]
-        
-        model.fit(x_train.reshape(-1,1), y_train)
-        
-        predictions = model.predict(x_test.reshape(-1,1))
-        mse = mean_squared_error(y_test, predictions)
-        
-        array_MSE.append(mse)
+    for train_index, test_index in tscv.split(X_train):
+          x_train, x_test = X_train[train_index], X_train[test_index]
+          y_train, y_test = Y_train[train_index], Y_train[test_index]
+      
+          model.fit(x_train.reshape(-1,1), y_train)
+      
+          predictions = model.predict(x_test.reshape(-1,1))
+          mse = mean_squared_error(y_test, predictions)
+      
+          array_MSE.append(mse)
 
-      ind.score = mean(array_MSE) 
-      # print(f'Score {mean_squared_error(y_train, y_pred)}')
+    ind.score = mean(array_MSE) 
 
 """# Init Population"""
 
 def init_population():
   population = []
 
-  for i in range(LENGTH_POPULATION):
+  for _ in range(LENGTH_POPULATION):
     subject = []
     subject.append(random.randint(2,3)) 
     subject.append(random.randint(1,256))
@@ -183,16 +182,13 @@ def init_population():
   return population
   
 
-def start(df):
-
-  X_train = np.array([x for x in range(len(df))])
-  Y_train = df.ravel()
-
+def start(X_train,Y_train):
+  
   POPULATION = init_population()
 
   generation = 0
   good_number = math.inf
-  flag = False
+  # flag = False
 
   while True:
       
@@ -214,11 +210,7 @@ def start(df):
         count_aux += 1
 
 
-    if generation == 1000 or count_aux == 5:
-        flag = True
-
-
-    if flag:
+    if generation == 1000 or count_aux == 2:
         print("=" * 45)
         print(f'Individuo: {POPULATION[0].schema} e o score dele {POPULATION[0].score} geracao {generation}')
         print("=" *45)
