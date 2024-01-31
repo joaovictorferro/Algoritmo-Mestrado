@@ -6,7 +6,6 @@ import statistics
 import pandas as pd
 import numpy as np
 import pmdarima as pm
-from pmdarima import auto_arima
 from sklearn.neural_network import MLPRegressor
 from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error, mean_absolute_error
 from sklearn.model_selection import TimeSeriesSplit

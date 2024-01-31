@@ -5,27 +5,29 @@ import numpy as np
 import random
 import pandas as pd
 import math
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error
 from statistics import mean
-from sklearn.model_selection import KFold
-import warnings
+from sklearn.model_selection import TimeSeriesSplit
 from sklearn.tree import DecisionTreeRegressor
 
+import warnings
 warnings.filterwarnings('ignore')
 
 """# Global Variables"""
 
 POPULATION = []
 NEW_POPULATION = []
-LENGTH_POPULATION = 10
+LENGTH_POPULATION = 100
 CROSSOVER_RATE = 90
 MUTATION_RATE = 75
 
 dict_criterion = {0: 'squared_error', 1: 'friedman_mse', 2: 'absolute_error'}
 dict_max_features = {0:'sqrt', 1: 'log2'}
 
-df = pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/S%26P500/DataSet_S%26P500.csv')
+df = pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/S%26P500/%5ESPX.csv')
+
+df = df.dropna()
 
 """# Class"""
 
@@ -60,12 +62,7 @@ def mutation(population_):
   for ind in population_: #itera na populacao
     array_2 = [] #armazena o schema do individuo para nao alterar o original
     array_2 = ind.schema # pega o caminho do schema
-
-    # yes = np.random.randint(0,100) #verifica se vai ocorrer a mutacao
-
-    # if yes <= MUTATION_RATE: #se a mutacao for menor ocorre a permutacao
-
-    # print(ind)
+    
     for i in range(len(ind.schema)):
       
       yes = np.random.randint(0,100) #verifica se vai ocorrer a mutacao
@@ -82,7 +79,7 @@ def mutation(population_):
         elif i == 4:
          array_2[i] = random.randint(1,100)
         elif i == 5:
-            array_2[i] = random.uniform(0.01, 1.0)
+            array_2[i] = random.randint(2, 20)
     
     array.append(Chromosome(array_2))
 
@@ -108,7 +105,7 @@ def crossOver(population):
     
     if father != mother:
       child = []
-      cut = np.random.randint(1,10)
+      cut = np.random.randint(1,4)
       child.append(father[:cut] + mother[cut:])
       child.append(mother[:cut] + father[cut:])
       
@@ -138,11 +135,11 @@ def score(population_test):
                                       min_samples_split = min_samples_split,
                                       splitter = 'best')
 
-    kfold = KFold(n_splits=5)
+    tscv = TimeSeriesSplit(n_splits=5)
     
     array_MSE = []
     
-    for train_index, test_index in kfold.split(X_train):
+    for train_index, test_index in tscv.split(X_train):
       x_train, x_test = X_train[train_index], X_train[test_index]
       y_train, y_test = Y_train[train_index], Y_train[test_index]
       
@@ -153,13 +150,7 @@ def score(population_test):
       
       array_MSE.append(mse)
   
-    # model.fit(X_train.reshape(-1,1), y_train)
-
-    # y_pred = model.predict(X_train.reshape(-1,1))
-
     ind.score = mean(array_MSE) 
-    # print(f'Score {mean_squared_error(y_train, y_pred)}')
-
 """# Init Population"""
 
 def init_population():
@@ -171,16 +162,14 @@ def init_population():
     subject.append(random.randint(1,100))
     subject.append(random.randint(0,1))
     subject.append(random.randint(1,100))
-    subject.append(random.uniform(0.01, 1.0))
+    subject.append(random.randint(2, 20))
     
     
     POPULATION.append(Chromosome(subject))
 
 def preprocessing(df_):
-    Train=df_.iloc[0:1700,:] # Cria o dataset de Treino com 1700
-    Test=df_.iloc[1700:,:] #Cria o dataset de teste 738
-    Train=Train.fillna(Train.mean()) # Completa o dataset onde estiver vazio com a média do dataset de Treino
-    Test=Test.fillna(Test.mean()) # Completa o dataset onde estiver vazio com a média do dataset de Test
+    Train=df_.iloc[0:1900,:] # Cria o dataset de Treino com 1700
+    Test=df_.iloc[1900:,:] #Cria o dataset de teste 738
 
         ################################################ Encoding ########################
 
@@ -194,7 +183,7 @@ def preprocessing(df_):
     Test = Test.astype('float32')
 
     Train = Train.astype('float32')
-    normalizer = StandardScaler().fit(Train)
+    normalizer = MinMaxScaler(feature_range=(0.1, 0.9)).fit(Train)
     Train=normalizer.transform(Train)
 
     Test = Test.astype('float32')
@@ -223,11 +212,7 @@ while True:
   for ind in NEW_POPULATION:
     print(f'Schema {ind.schema} Score {ind.score} Tamanho {len(ind.schema)}')
 
-# #     # min_score = min(POPULATION, key=lambda x: x.score).score
-
   min_score = POPULATION[0].score
-
-  # print(min_score)
 
   if min_score < good_number:
     good_number = min_score
@@ -237,8 +222,6 @@ while True:
 
   if generation == 1000 or count_aux == 5:
     flag = True
-
-  # array_points.append(np.mean([t.score for t in POPULATION]))
 
   if flag:
     print("===================================================================")

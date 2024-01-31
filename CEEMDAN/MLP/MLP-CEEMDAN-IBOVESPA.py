@@ -43,11 +43,11 @@ def preprocessing(train_aux, test_aux):
 
 def resultado(x_train,x_test,y_train,y_test):
 
-    CART = MLPRegressor(activation= 'tanh', alpha=0.01,batch_size= 32, hidden_layer_sizes= (100,100),learning_rate = 'constant',max_iter= 400, solver= 'adam')
+    MLP = MLPRegressor(activation= 'tanh', alpha=0.01,batch_size= 32, hidden_layer_sizes= (100,100),learning_rate = 'constant',max_iter= 400, solver= 'adam')
 
-    CART.fit(x_train, y_train)
+    MLP.fit(x_train, y_train)
 
-    prediction = CART.predict(x_test)
+    prediction = MLP.predict(x_test)
     
     return prediction
 
