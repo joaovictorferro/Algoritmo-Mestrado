@@ -12,8 +12,8 @@ from sklearn.model_selection import TimeSeriesSplit
 from sklearn.preprocessing import MinMaxScaler
 import Completo_MLP_AG as CMA
 
-import warnings
-warnings.filterwarnings("ignore")
+# import warnings
+# warnings.filterwarnings("ignore")
 
 """# Leitura Database"""
 data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/IBOVESPA/IBOVESPA.csv')
@@ -27,8 +27,7 @@ dicionario_metricas = {
     'MAE': [],
     'MAPE':[]
 }
-dict_activation = {0: 'relu', 1: 'tanh', 2: 'logistic'}
-dict_learning_rate = {0:'constant', 1:'invscaling', 2:'adaptive'}
+dict_activation = {0: 'relu', 1: 'tanh'}
 
 """# Preprocessamento"""
 
@@ -46,27 +45,31 @@ def preprocessing(train_aux, test_aux):
 
 def resultado(x_train,x_test,y_train,y_test):
 
-    quantidade_camada_oculta,hidden_layer_sizes_1,hidden_layer_sizes_2, hidden_layer_sizes_3, activation, learning_rate,alpha, batch_size, max_iter = CMA.start(x_train,y_train)
+    quantidade_camada_oculta,hidden_layer_sizes_1,hidden_layer_sizes_2, hidden_layer_sizes_3, activation,alpha, batch_size, max_iter = CMA.start(x_train,y_train)
   
     if quantidade_camada_oculta == 2:
         model = MLPRegressor(
         hidden_layer_sizes=(hidden_layer_sizes_1,hidden_layer_sizes_2),
         activation=dict_activation[activation],
         solver='adam',
-        learning_rate=dict_learning_rate[learning_rate],
+        learning_rate='constant',
         alpha=alpha,
         batch_size=batch_size,
-        max_iter=max_iter
+        max_iter=max_iter,
+        random_state = 42,
+        shuffle = False,
         ).fit(x_train, y_train)
     else:
         model = MLPRegressor(
         hidden_layer_sizes=(hidden_layer_sizes_1,hidden_layer_sizes_2,hidden_layer_sizes_3),
-        activation=dict_activation[round(activation)],
+        activation=dict_activation[activation],
         solver='adam',
-        learning_rate=dict_learning_rate[round(learning_rate)],
+        learning_rate='constant',
         alpha=alpha,
-        batch_size=round(batch_size),
-        max_iter=round(max_iter)
+        batch_size=batch_size,
+        max_iter=max_iter,
+        random_state = 42,
+        shuffle = False,
         ).fit(x_train, y_train)
 
 
@@ -126,17 +129,24 @@ for train_index, test_index in tscv.split(X_Test):
   X_Train_aux = []
   train_set, test_set = X_Test[train_index], X_Test[test_index]
 
-  if count == 0:
-    Train,Test = preprocessing((np.array(data.loc[:, 'Close'][0:1900])).reshape(-1, 1),(np.array(data.loc[:, 'Close'][1900:])).reshape(-1, 1)) # Realiza a normalizacao
+  # if count == 0:
+    # Train,Test = preprocessing((np.array(data.loc[:, 'Close'][0:1900])).reshape(-1, 1),(np.array(data.loc[:, 'Close'][1900:])).reshape(-1, 1)) # Realiza a normalizacao
 
-    decomposition_final(X_Train.reshape(-1,1), train_set.reshape(-1,1), Train, Test[:len(train_set)])
+    # decomposition_final(X_Train.reshape(-1,1), train_set.reshape(-1,1), Train, Test[:len(train_set)])
 
-    X_Train_aux = np.concatenate((X_Train, train_set), axis=0)
+    # X_Train_aux = np.concatenate((X_Train, train_set), axis=0)
 
-    Train,Test = preprocessing((np.array(data.loc[:, 'Close'][0:len(X_Train_aux)])).reshape(-1, 1),(np.array(data.loc[:, 'Close'][len(X_Train_aux):])).reshape(-1, 1)) # Realiza o pré-processamento
+    # Train,Test = preprocessing((np.array(data.loc[:, 'Close'][0:len(X_Train_aux)])).reshape(-1, 1),(np.array(data.loc[:, 'Close'][len(X_Train_aux):])).reshape(-1, 1)) # Realiza o pré-processamento
     
-    decomposition_final(X_Train_aux.reshape(-1,1), test_set.reshape(-1,1), Train, Test[:len(test_set)])
-  else:
+    # decomposition_final(X_Train_aux.reshape(-1,1), test_set.reshape(-1,1), Train, Test[:len(test_set)])
+  # else:
+  #   X_Train_aux = np.concatenate((X_Train, train_set), axis=0)
+
+  #   Train,Test = preprocessing((np.array(data.loc[:, 'Close'][0:len(X_Train_aux)])).reshape(-1, 1),(np.array(data.loc[:, 'Close'][len(X_Train_aux):])).reshape(-1, 1)) # Realiza o pré-processamento
+    
+  #   decomposition_final(X_Train_aux.reshape(-1,1), test_set.reshape(-1,1), Train, Test[:len(test_set)])
+  
+  if count == 3:
     X_Train_aux = np.concatenate((X_Train, train_set), axis=0)
 
     Train,Test = preprocessing((np.array(data.loc[:, 'Close'][0:len(X_Train_aux)])).reshape(-1, 1),(np.array(data.loc[:, 'Close'][len(X_Train_aux):])).reshape(-1, 1)) # Realiza o pré-processamento
@@ -148,5 +158,8 @@ for train_index, test_index in tscv.split(X_Test):
 print(f"Media do MSE: {statistics.mean(dicionario_metricas['MSE'])}")
 print(dicionario_metricas['MSE'])
 print(f"Media do RMSE: {statistics.mean(dicionario_metricas['RMSE'])}")
+print(dicionario_metricas['RMSE'])
 print(f"Media do MAE: {statistics.mean(dicionario_metricas['MAE'])}")
+print(dicionario_metricas['MAE'])
 print(f"Media do MAPE: {statistics.mean(dicionario_metricas['MAPE'])}")
+print(dicionario_metricas['MAPE'])

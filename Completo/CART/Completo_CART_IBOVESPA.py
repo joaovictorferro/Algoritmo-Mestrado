@@ -64,8 +64,6 @@ def resultado(x_train,x_test,y_train,y_test):
                                       min_samples_split = min_samples_split,
                                       splitter = 'best').fit(x_train, y_train)
 
-    model.fit(x_train, y_train)
-
     prediction = model.predict(x_test)
     
     return prediction

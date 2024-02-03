@@ -5,13 +5,13 @@ import numpy as np
 import math
 import random
 from sklearn.metrics import mean_squared_error
-import warnings
 from statistics import mean
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.neural_network import MLPRegressor
 import gc
 
-warnings.filterwarnings('ignore')
+# import warnings
+# warnings.filterwarnings('ignore')
 
 """# Global Variables"""
 
@@ -20,8 +20,7 @@ CROSSOVER_RATE = 90
 MUTATION_RATE = 75
 
 """# Dicionário"""
-dict_activation = {0: 'relu', 1: 'tanh', 2: 'logistic'}
-dict_learning_rate = {0:'constant', 1:'invscaling', 2:'adaptive'}
+dict_activation = {0: 'relu', 1: 'tanh'}
 
 """# Class"""
 
@@ -65,14 +64,14 @@ def mutation(population_):
         if i == 0:
           array_2[i] = random.randint(2,3)
         elif i >=1 and i <= 3:
-          array_2[i] = random.randint(1,256)
-        elif i >= 4 and i <= 5:
-          array_2[i] = random.randint(0,2)
-        elif i == 6:
+          array_2[i] = random.randint(1,100)
+        elif i == 4:
+          array_2[i] = random.randint(0,1)
+        elif i == 5:
           array_2[i] = round(random.uniform(0.0001, 1.0),4)
-        elif i == 7:
+        elif i == 6:
          array_2[i] = random.randint(16,128)
-        elif i == 8:
+        elif i == 7:
           array_2[i] = random.randint(100,300)
 
     array.append(Chromosome(array_2))
@@ -104,7 +103,7 @@ def crossOver(population):
     
     if father != mother:
       child = []
-      cut = np.random.randint(1,7)
+      cut = np.random.randint(1,6)
       child.append(father[:cut] + mother[cut:])
       child.append(mother[:cut] + father[cut:])
 
@@ -118,29 +117,30 @@ def crossOver(population):
 def score(population_test, X_train, Y_train):
   
   for ind in population_test:
-    quantidade_camada_oculta,hidden_layer_sizes_1,hidden_layer_sizes_2, hidden_layer_sizes_3, activation, learning_rate,alpha, batch_size, max_iter = ind.schema
-  
-    if quantidade_camada_oculta == 2:
+    quantidade_camada_oculta,hidden_layer_sizes_1,hidden_layer_sizes_2, hidden_layer_sizes_3, activation,alpha, batch_size, max_iter = ind.schema
 
+    if quantidade_camada_oculta == 2:
       model = MLPRegressor(
-        hidden_layer_sizes=(hidden_layer_sizes_1,hidden_layer_sizes_2),
-        activation=dict_activation[activation],
-        solver='adam',
-        learning_rate=dict_learning_rate[learning_rate],
-        alpha=alpha,
-        batch_size=batch_size,
-        max_iter=max_iter
-      )
+      hidden_layer_sizes=(hidden_layer_sizes_1,hidden_layer_sizes_2),
+      activation=dict_activation[activation],
+      solver='adam',
+      learning_rate='constant',
+      alpha=alpha,
+      batch_size=batch_size,
+      max_iter=max_iter,
+      random_state = 42,
+      shuffle = False)
     else:
       model = MLPRegressor(
-        hidden_layer_sizes=(hidden_layer_sizes_1,hidden_layer_sizes_2,hidden_layer_sizes_3),
-        activation=dict_activation[round(activation)],
-        solver='adam',
-        learning_rate=dict_learning_rate[round(learning_rate)],
-        alpha=alpha,
-        batch_size=round(batch_size),
-        max_iter=round(max_iter)
-      )
+      hidden_layer_sizes=(hidden_layer_sizes_1,hidden_layer_sizes_2,hidden_layer_sizes_3),
+      activation=dict_activation[activation],
+      solver='adam',
+      learning_rate='constant',
+      alpha=alpha,
+      batch_size=batch_size,
+      max_iter=max_iter,
+      random_state = 42,
+      shuffle = False)
 
     tscv = TimeSeriesSplit(n_splits=5)
       
@@ -167,11 +167,10 @@ def init_population():
   for _ in range(LENGTH_POPULATION):
     subject = []
     subject.append(random.randint(2,3)) 
-    subject.append(random.randint(1,256))
-    subject.append(random.randint(1,256))
-    subject.append(random.randint(1,256))
-    subject.append(random.randint(0,2))
-    subject.append(random.randint(0,2)) 
+    subject.append(random.randint(1,100))
+    subject.append(random.randint(1,100))
+    subject.append(random.randint(1,100))
+    subject.append(random.randint(0,1))
     subject.append(round(random.uniform(0.0001, 1.0),4))
     subject.append(random.randint(16,128))
     subject.append(random.randint(100,300))

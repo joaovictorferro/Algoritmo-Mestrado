@@ -128,7 +128,7 @@ def score(population_test, X_train, Y_train):
                                     min_samples_split = min_samples_split,
                                     splitter = 'best')
     else:
-          model = model = DecisionTreeRegressor(criterion = dict_criterion[criterion], 
+          model = DecisionTreeRegressor(criterion = dict_criterion[criterion], 
                                     max_depth = max_depth,
                                     max_features = dict_max_features[max_features],
                                     min_samples_leaf = min_samples_leaf, 
