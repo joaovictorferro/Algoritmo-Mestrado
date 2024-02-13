@@ -129,10 +129,10 @@ for train_index, test_index in tscv.split(X_Test):
   X_Train_aux = []
   train_set, test_set = X_Test[train_index], X_Test[test_index]
 
-  # if count == 0:
-    # Train,Test = preprocessing((np.array(data.loc[:, 'Close'][0:1900])).reshape(-1, 1),(np.array(data.loc[:, 'Close'][1900:])).reshape(-1, 1)) # Realiza a normalizacao
+  if count == 0:
+    Train,Test = preprocessing((np.array(data.loc[:, 'Close'][0:1900])).reshape(-1, 1),(np.array(data.loc[:, 'Close'][1900:])).reshape(-1, 1)) # Realiza a normalizacao
 
-    # decomposition_final(X_Train.reshape(-1,1), train_set.reshape(-1,1), Train, Test[:len(train_set)])
+    decomposition_final(X_Train.reshape(-1,1), train_set.reshape(-1,1), Train, Test[:len(train_set)])
 
     # X_Train_aux = np.concatenate((X_Train, train_set), axis=0)
 
@@ -146,12 +146,12 @@ for train_index, test_index in tscv.split(X_Test):
     
   #   decomposition_final(X_Train_aux.reshape(-1,1), test_set.reshape(-1,1), Train, Test[:len(test_set)])
   
-  if count == 3:
-    X_Train_aux = np.concatenate((X_Train, train_set), axis=0)
+  # if count == 29:
+  #   X_Train_aux = np.concatenate((X_Train, train_set), axis=0)
 
-    Train,Test = preprocessing((np.array(data.loc[:, 'Close'][0:len(X_Train_aux)])).reshape(-1, 1),(np.array(data.loc[:, 'Close'][len(X_Train_aux):])).reshape(-1, 1)) # Realiza o pré-processamento
+  #   Train,Test = preprocessing((np.array(data.loc[:, 'Close'][0:len(X_Train_aux)])).reshape(-1, 1),(np.array(data.loc[:, 'Close'][len(X_Train_aux):])).reshape(-1, 1)) # Realiza o pré-processamento
     
-    decomposition_final(X_Train_aux.reshape(-1,1), test_set.reshape(-1,1), Train, Test[:len(test_set)])
+  #   decomposition_final(X_Train_aux.reshape(-1,1), test_set.reshape(-1,1), Train, Test[:len(test_set)])
   
   count += 1
 

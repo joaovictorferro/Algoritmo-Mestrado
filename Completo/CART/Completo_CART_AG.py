@@ -174,13 +174,14 @@ def init_population():
 def start(X_train, Y_train):
 
   POPULATION = init_population()
-
+  score(POPULATION, X_train, Y_train)
+  
   generation = 0
   good_number = math.inf
 
   while True:
       
-    score(POPULATION, X_train, Y_train)
+    # score(POPULATION, X_train, Y_train)
     NEW_POPULATION = crossOver(POPULATION)
     NEW_POPULATION = mutation(NEW_POPULATION)
     score(NEW_POPULATION, X_train, Y_train)
