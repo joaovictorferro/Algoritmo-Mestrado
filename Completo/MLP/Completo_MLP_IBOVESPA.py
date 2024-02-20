@@ -45,9 +45,9 @@ def preprocessing(train_aux, test_aux):
 
 def resultado(x_train,x_test,y_train,y_test):
 
-    quantidade_camada_oculta,hidden_layer_sizes_1,hidden_layer_sizes_2, hidden_layer_sizes_3, activation,alpha, batch_size, max_iter = CMA.start(x_train,y_train)
+  quantidade_camada_oculta,hidden_layer_sizes_1,hidden_layer_sizes_2, hidden_layer_sizes_3, activation,alpha, batch_size, max_iter = CMA.start(x_train,y_train)
   
-    if quantidade_camada_oculta == 2:
+  if quantidade_camada_oculta == 2:
         model = MLPRegressor(
         hidden_layer_sizes=(hidden_layer_sizes_1,hidden_layer_sizes_2),
         activation=dict_activation[activation],
@@ -59,7 +59,7 @@ def resultado(x_train,x_test,y_train,y_test):
         random_state = 42,
         shuffle = False,
         ).fit(x_train, y_train)
-    else:
+  else:
         model = MLPRegressor(
         hidden_layer_sizes=(hidden_layer_sizes_1,hidden_layer_sizes_2,hidden_layer_sizes_3),
         activation=dict_activation[activation],
@@ -73,9 +73,9 @@ def resultado(x_train,x_test,y_train,y_test):
         ).fit(x_train, y_train)
 
 
-    prediction = model.predict(x_test)
+  prediction = model.predict(x_test)
     
-    return prediction
+  return prediction
 
 def decomposition(signal):
   ceemdan = CEEMDAN(trials = 200, epsilon = 0.005)

@@ -1,0 +1,9 @@
+Em que situação um modelo mostrou mais "interessante" que o outro (de acordo com o cenário)
+Prestar atenção no desvio padrão para verificar Overfitting 
+Verificar se não existe uma biblioteca que trabalha com a escolha de ensemble heterogêneo
+
+O desvio padrão da métrica MSE (Mean Squared Error) em seus modelos de aprendizado de máquina fornece uma medida da variabilidade dos erros de previsão. Em outras palavras, ele indica o quanto os erros de previsão estão dispersos em torno da média dos erros.
+
+Se o desvio padrão for baixo, isso significa que os erros de previsão estão próximos da média dos erros, indicando que seu modelo é consistentemente preciso. Por outro lado, um desvio padrão alto indica que os erros estão mais dispersos, o que pode sugerir que seu modelo é menos confiável, pois às vezes pode fazer previsões muito precisas e outras vezes previsões imprecisas.
+
+Portanto, o desvio padrão do MSE pode ser usado para avaliar a confiabilidade do seu modelo de aprendizado de máquina. No entanto, é importante lembrar que o desvio padrão é apenas uma das várias métricas que você pode usar para avaliar seu modelo e deve ser usado em conjunto com outras métricas para obter uma visão completa do desempenho do seu modelo.
