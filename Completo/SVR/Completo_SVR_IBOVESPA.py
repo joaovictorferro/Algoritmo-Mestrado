@@ -27,6 +27,7 @@ dicionario_metricas = {
     'MAE': [],
     'MAPE':[]
 }
+
 dict_linear = {0: 'linear', 1:'rbf', 2:'sigmoid'}
 """# Preprocessamento"""
 
@@ -44,19 +45,19 @@ def preprocessing(train_aux, test_aux):
 
 def resultado(x_train,x_test,y_train,y_test):
 
-    linear, c, epsilon, gamma, max_iter = CSA.start(x_train,y_train)
+  linear, c, epsilon, gamma, max_iter = CSA.start(x_train,y_train)
+
+  svr = SVR(C = c, 
+                epsilon = epsilon, 
+                gamma = gamma, 
+                kernel = dict_linear[linear], 
+                max_iter = max_iter).fit(x_train, y_train)
+
+  svr.fit(x_train, y_train)
+
+  prediction = svr.predict(x_test)
   
-    svr = SVR(C = c, 
-                  epsilon = epsilon, 
-                  gamma = gamma, 
-                  kernel = dict_linear[linear], 
-                  max_iter = max_iter).fit(x_train, y_train)
-
-    svr.fit(x_train, y_train)
-
-    prediction = svr.predict(x_test)
-    
-    return prediction
+  return prediction
 
 def decomposition(signal):
   ceemdan = CEEMDAN(trials = 200, epsilon = 0.005)
