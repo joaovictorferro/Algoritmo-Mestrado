@@ -4,7 +4,7 @@ import statistics
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error, mean_absolute_error
 from sklearn.preprocessing import MinMaxScaler
-from pmdarima import pm
+from pmdarima import ARIMA
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -38,7 +38,7 @@ def resultado(x_train,x_test,y_train,y_test):
     y_train = y_train.ravel()
     y_test = y_test.ravel()
     
-    model = pm.ARIMA(order=(1, 0, 1))
+    model = ARIMA(order=(1, 0, 1))
 
     model.fit(y_train)
     
@@ -85,5 +85,7 @@ for train_index, test_index in tscv.split(X_Test):
 print(f"Media do MSE: {statistics.mean(dicionario_metricas['MSE'])}")
 print(dicionario_metricas['MSE'])
 print(f"Media do RMSE: {statistics.mean(dicionario_metricas['RMSE'])}")
+print(dicionario_metricas['RMSE'])
 print(f"Media do MAE: {statistics.mean(dicionario_metricas['MAE'])}")
+print(dicionario_metricas['MAE'])
 print(f"Media do MAPE: {statistics.mean(dicionario_metricas['MAPE'])}")

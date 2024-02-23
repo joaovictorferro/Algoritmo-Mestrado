@@ -142,5 +142,7 @@ for train_index, test_index in tscv.split(X_Test):
 print(f"Media do MSE: {statistics.mean(dicionario_metricas['MSE'])}")
 print(dicionario_metricas['MSE'])
 print(f"Media do RMSE: {statistics.mean(dicionario_metricas['RMSE'])}")
+print(dicionario_metricas['RMSE'])
 print(f"Media do MAE: {statistics.mean(dicionario_metricas['MAE'])}")
+print(dicionario_metricas['MAE'])
 print(f"Media do MAPE: {statistics.mean(dicionario_metricas['MAPE'])}")

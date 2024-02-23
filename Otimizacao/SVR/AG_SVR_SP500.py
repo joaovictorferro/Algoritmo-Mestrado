@@ -64,7 +64,7 @@ def resultado(x_train,x_test,y_train,y_test):
 
   dicionario_metricas['MSE'].append(mean_squared_error(y_test, prediction, squared=True))
   dicionario_metricas['MAE'].append(mean_absolute_error(y_test, prediction))
-  dicionario_metricas['MAPE'].append(mean_absolute_percentage_error(y_test, prediction))
+  # dicionario_metricas['MAPE'].append(mean_absolute_percentage_error(y_test, prediction))
   dicionario_metricas['RMSE'].append(mean_squared_error(y_test, prediction, squared=False))
 
 """# Main"""
@@ -106,5 +106,7 @@ for train_index, test_index in tscv.split(X_Test):
 print(f"Media do MSE: {statistics.mean(dicionario_metricas['MSE'])}")
 print(dicionario_metricas['MSE'])
 print(f"Media do RMSE: {statistics.mean(dicionario_metricas['RMSE'])}")
+print(dicionario_metricas['RMSE'])
 print(f"Media do MAE: {statistics.mean(dicionario_metricas['MAE'])}")
-print(f"Media do MAPE: {statistics.mean(dicionario_metricas['MAPE'])}")
+print(dicionario_metricas['MAE'])
+# print(f"Media do MAPE: {statistics.mean(dicionario_metricas['MAPE'])}")

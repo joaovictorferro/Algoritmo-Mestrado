@@ -6,7 +6,7 @@ import statistics
 import pandas as pd
 import numpy as np
 from PyEMD import CEEMDAN
-from sklearn.svm import SVR
+from sklearn.neural_network import MLPRegressor
 from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error, mean_absolute_error
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.preprocessing import MinMaxScaler
@@ -43,11 +43,11 @@ def preprocessing(train_aux, test_aux):
 
 def resultado(x_train,x_test,y_train,y_test):
 
-    svr = SVR(C= 0.1, epsilon = 0.5, gamma = 0.1, kernel = 'linear', max_iter= 1000)
+    MLP = MLPRegressor(activation= 'tanh', alpha=0.01,batch_size= 32, hidden_layer_sizes= (100,100),learning_rate = 'constant',max_iter= 400, solver= 'adam')
 
-    svr.fit(x_train, y_train)
+    MLP.fit(x_train, y_train)
 
-    prediction = svr.predict(x_test)
+    prediction = MLP.predict(x_test)
     
     return prediction
 
@@ -125,5 +125,7 @@ for train_index, test_index in tscv.split(X_Test):
 print(f"Media do MSE: {statistics.mean(dicionario_metricas['MSE'])}")
 print(dicionario_metricas['MSE'])
 print(f"Media do RMSE: {statistics.mean(dicionario_metricas['RMSE'])}")
+print(dicionario_metricas['RMSE'])
 print(f"Media do MAE: {statistics.mean(dicionario_metricas['MAE'])}")
+print(dicionario_metricas['MAE'])
 print(f"Media do MAPE: {statistics.mean(dicionario_metricas['MAPE'])}")
