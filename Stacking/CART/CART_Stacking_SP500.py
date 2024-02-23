@@ -48,13 +48,13 @@ def resultado(x_train,x_test,y_train,y_test):
     y_test = y_test.ravel()
     
     estimators = [
-        ('cart', DecisionTreeRegressor(criterion= 'squared_error', max_depth =None,max_features='sqrt',min_samples_leaf= 1, min_samples_split= 10,splitter='best')),
-        ('mlp',MLPRegressor(activation= 'relu', alpha=0.001,batch_size= 128, hidden_layer_sizes= (100,50,25),learning_rate = 'adaptive',max_iter= 400, solver= 'adam'))
+        ('mlp', MLPRegressor(activation= 'relu', alpha=0.001,batch_size= 128, hidden_layer_sizes= (100,50,25),learning_rate = 'adaptive',max_iter= 400, solver= 'adam')),
+        ('svr', SVR(C= 0.1, epsilon = 0.1, gamma = 0.1, kernel = 'linear', max_iter= 10000))
     ]
 
     stacking = StackingRegressor(
         estimators=estimators,
-        final_estimator = SVR(C= 0.1, epsilon = 0.1, gamma = 0.1, kernel = 'linear', max_iter= 10000)
+        final_estimator = DecisionTreeRegressor(criterion= 'squared_error', max_depth =None,max_features='sqrt',min_samples_leaf= 1, min_samples_split= 10,splitter='best')
 
     ).fit(x_train, y_train)
 
@@ -105,5 +105,7 @@ for train_index, test_index in tscv.split(X_Test):
 print(f"Media do MSE: {statistics.mean(dicionario_metricas['MSE'])}")
 print(dicionario_metricas['MSE'])
 print(f"Media do RMSE: {statistics.mean(dicionario_metricas['RMSE'])}")
+print(dicionario_metricas['RMSE'])
 print(f"Media do MAE: {statistics.mean(dicionario_metricas['MAE'])}")
+print(dicionario_metricas['MAE'])
 print(f"Media do MAPE: {statistics.mean(dicionario_metricas['MAPE'])}")
