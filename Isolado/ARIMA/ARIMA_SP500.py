@@ -1,19 +1,14 @@
-# -*- coding: utf-8 -*-
-import sys
-sys.version
-#Import Libraries
-import statistics
-import pandas as pd
 import numpy as np
-from sklearn.neural_network import MLPRegressor
-from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error, mean_absolute_error
+import pandas as pd
+import statistics
 from sklearn.model_selection import TimeSeriesSplit
+from sklearn.metrics import mean_absolute_percentage_error, mean_squared_error, mean_absolute_error
 from sklearn.preprocessing import MinMaxScaler
+import pmdarima as pm
 
 import warnings
 warnings.filterwarnings("ignore")
 
-"""# Leitura Database"""
 data=pd.read_csv('https://raw.githubusercontent.com/joaovictorferro/DataSet-IBOVESPA/main/S%26P500/%5ESPX.csv')
 
 data = data.dropna()
@@ -43,21 +38,17 @@ def resultado(x_train,x_test,y_train,y_test):
     y_train = y_train.ravel()
     y_test = y_test.ravel()
     
-    mlp = MLPRegressor(activation= 'relu', alpha=0.001,batch_size= 128, hidden_layer_sizes= (100,50,25), 
-                          learning_rate = 'adaptive',max_iter= 400, solver= 'adam')
+    model = model = pm.ARIMA(order=(1, 0, 1))
 
-    mlp.fit(x_train, y_train)
+    model.fit(y_train)
+    
+    prediction_arima_final, conf_int = model.predict(n_periods=len(x_test), return_conf_int=True)
 
-    prediction = mlp.predict(x_test)
+    dicionario_metricas['MSE'].append(mean_squared_error(y_test, prediction_arima_final, squared=True))
+    dicionario_metricas['MAE'].append(mean_absolute_error(y_test, prediction_arima_final))
+    dicionario_metricas['MAPE'].append(mean_absolute_percentage_error(y_test, prediction_arima_final))
+    dicionario_metricas['RMSE'].append(mean_squared_error(y_test, prediction_arima_final, squared=False))
 
-    dicionario_metricas['MSE'].append(mean_squared_error(y_test, prediction, squared=True))
-    dicionario_metricas['MAE'].append(mean_absolute_error(y_test, prediction))
-    dicionario_metricas['MAPE'].append(mean_absolute_percentage_error(y_test, prediction))
-    dicionario_metricas['RMSE'].append(mean_squared_error(y_test, prediction, squared=False))
-
-"""# Main"""
-
-#Base dos 70% para treino
 
 X_Train = np.array([x for x in range(1900)])
 
@@ -91,8 +82,11 @@ for train_index, test_index in tscv.split(X_Test):
   
   count += 1
 
+
 print(f"Media do MSE: {statistics.mean(dicionario_metricas['MSE'])}")
 print(dicionario_metricas['MSE'])
 print(f"Media do RMSE: {statistics.mean(dicionario_metricas['RMSE'])}")
+print(dicionario_metricas['RMSE'])
 print(f"Media do MAE: {statistics.mean(dicionario_metricas['MAE'])}")
+print(dicionario_metricas['MAE'])
 print(f"Media do MAPE: {statistics.mean(dicionario_metricas['MAPE'])}")
